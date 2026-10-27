@@ -93,4 +93,17 @@
     <string name="channel_permission">Permission</string>
     <string name="notify_permission_title">Alexa Icon Hider: permission missing</string>
     <string name="notify_permission_text">Run once via ADB:</string>
+
+    <string name="section_privacy">Privacy</string>
+    <string name="telemetry_title">Disable ads &amp; tracking</string>
+    <string name="telemetry_summary">Interest-based ads and device targeting</string>
+    <string name="row_track">Interest-based ads</string>
+    <string name="row_track_key" translatable="false">limit_ad_tracking</string>
+    <string name="row_dtcp">Device-targeted content</string>
+    <string name="row_dtcp_key" translatable="false">IS_DTCP_ENABLED</string>
+    <string name="reset_ad_title">Advertising ID</string>
+    <string name="reset_ad_key" translatable="false">advertising_id</string>
+    <string name="reset_ad_action">Reset</string>
+    <string name="blocked">blocked</string>
+    <string name="allowed">allowed</string>
 </resources>

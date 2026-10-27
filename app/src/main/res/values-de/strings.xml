@@ -84,4 +84,14 @@
     <string name="channel_permission">Berechtigung</string>
     <string name="notify_permission_title">Alexa Icon Hider: Berechtigung fehlt</string>
     <string name="notify_permission_text">Einmalig per ADB ausführen:</string>
+
+    <string name="section_privacy">Datenschutz</string>
+    <string name="telemetry_title">Werbung &amp; Tracking deaktivieren</string>
+    <string name="telemetry_summary">Interessenbasierte Werbung und Geräte-Targeting</string>
+    <string name="row_track">Interessenbasierte Werbung</string>
+    <string name="row_dtcp">Geräte-Targeting</string>
+    <string name="reset_ad_title">Werbe-ID</string>
+    <string name="reset_ad_action">Zurücksetzen</string>
+    <string name="blocked">blockiert</string>
+    <string name="allowed">erlaubt</string>
 </resources>

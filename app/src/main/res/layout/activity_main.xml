@@ -481,6 +481,160 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="36dp"
                     android:accessibilityHeading="true"
+                    android:text="@string/section_privacy" />
+
+                <Switch
+                    android:id="@+id/telemetry_toggle"
+                    style="@style/Text.Label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/card_pressable"
+                    android:minHeight="76dp"
+                    android:paddingStart="20dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="20dp"
+                    android:paddingBottom="16dp"
+                    android:showText="false"
+                    android:switchMinWidth="0dp"
+                    android:switchPadding="16dp"
+                    android:thumb="@drawable/switch_thumb"
+                    android:track="@drawable/switch_track" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/card"
+                    android:divider="@drawable/hairline"
+                    android:orientation="vertical"
+                    android:showDividers="middle">
+
+                    <LinearLayout
+                        style="@style/Row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Text.Label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/row_track" />
+
+                            <TextView
+                                style="@style/Text.Mono.Small"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/row_track_key" />
+                        </LinearLayout>
+
+                        <View
+                            android:id="@+id/track_dot"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:layout_marginEnd="10dp"
+                            android:background="@drawable/dot" />
+
+                        <TextView
+                            android:id="@+id/track_value"
+                            style="@style/Text.Mono"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        style="@style/Row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Text.Label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/row_dtcp" />
+
+                            <TextView
+                                style="@style/Text.Mono.Small"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/row_dtcp_key" />
+                        </LinearLayout>
+
+                        <View
+                            android:id="@+id/dtcp_dot"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:layout_marginEnd="10dp"
+                            android:background="@drawable/dot" />
+
+                        <TextView
+                            android:id="@+id/dtcp_value"
+                            style="@style/Text.Mono"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        style="@style/Row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Text.Label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/reset_ad_title" />
+
+                            <TextView
+                                style="@style/Text.Mono.Small"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/reset_ad_key" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/ad_id_value"
+                            style="@style/Text.Mono.Small"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp" />
+
+                        <Button
+                            android:id="@+id/reset_ad_id"
+                            style="@style/SecondaryButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/reset_ad_action" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    style="@style/Text.Eyebrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="36dp"
+                    android:accessibilityHeading="true"
                     android:text="@string/section_history" />
 
                 <!-- Diagnostics, so closed by default; the summary row opens the table. -->
