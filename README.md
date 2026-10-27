@@ -103,13 +103,19 @@ Java 17 Bytecode, AGP 9.4.1, Gradle 9.7.1 (Wrapper mit SHA-256), compileSdk/targ
 
 Die APK liegt danach unter `app/build/outputs/apk/release/app-release.apk`.
 
+Die Unit-Tests (`app/src/test`, JUnit 4) prüfen ohne Gerät und ohne Emulator die Logik, die kein Android braucht: den Schleifenschutz samt zurückgestellter Uhr und Läufen aus früheren Boots, das Kürzen des Verlaufs auf 20 Zeilen und das Zeilenformat, das der Statusbildschirm wieder zerlegt. JUnit landet nicht in der APK.
+
+```bash
+./gradlew testDebugUnitTest
+```
+
 - JDK 17 oder neuer, getestet mit der JBR 25 von Android Studio.
 - `local.properties` mit `sdk.dir` (nicht im Repo).
 - Signiert wird mit dem Keystore aus `keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`, nicht im Repo). Die Umgebungsvariablen `SIGNING_STORE_FILE`, `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS` und `SIGNING_KEY_PASSWORD` gehen vor. Updates müssen mit demselben Schlüssel signiert sein. Ohne Keystore entsteht eine unsignierte Release-APK.
 
 ## CI und Releases
 
-GitHub Actions baut bei jedem Push auf `main` und jedem Pull Request (`.github/workflows/ci.yml`). Der Lauf startet Lint, baut die Debug-APK und dazu die Release-APK unsigniert, damit R8 und das Ressourcen-Shrinking mitgeprüft werden. Die Debug-APK und der Lint-Bericht liegen 14 Tage als Artefakt am Lauf. Alle Actions sind auf einen Commit-SHA festgelegt, `setup-gradle` prüft dabei auch `gradle-wrapper.jar`. Dependabot schlägt monatlich Updates für Actions und das Android-Gradle-Plugin vor.
+GitHub Actions baut bei jedem Push auf `main` und jedem Pull Request (`.github/workflows/ci.yml`). Der Lauf startet Lint und die Unit-Tests, baut die Debug-APK und dazu die Release-APK unsigniert, damit R8 und das Ressourcen-Shrinking mitgeprüft werden. Die Debug-APK und der Lint-Bericht liegen 14 Tage als Artefakt am Lauf, bei einem Fehlschlag auch der Testbericht. Alle Actions sind auf einen Commit-SHA festgelegt, `setup-gradle` prüft dabei auch `gradle-wrapper.jar`. Dependabot schlägt monatlich Updates für Actions und das Android-Gradle-Plugin vor.
 
 Ein Release startet mit einem Tag (`.github/workflows/release.yml`):
 

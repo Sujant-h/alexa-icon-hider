@@ -49,7 +49,7 @@ final class Hider {
     private static final String PREF_DISABLED = "disabled";
     private static final String PREF_WRITES = "writes";
     private static final String PREF_PAUSED_AT = "paused_at";
-    private static final int HISTORY_SIZE = 20;
+    static final int HISTORY_SIZE = 20;
     // UserHandle.PER_USER_RANGE, hidden API: uid = userId * 100000 + appId.
     private static final int PER_USER_RANGE = 100_000;
 
@@ -155,8 +155,13 @@ final class Hider {
      */
     static String history(Context c) {
         SharedPreferences prefs = prefs(c);
-        return prefs.getInt(PREF_HISTORY_BOOT, -1) == bootCount(c)
-                ? prefs.getString(PREF_HISTORY, "") : "";
+        return currentHistory(prefs.getString(PREF_HISTORY, ""),
+                prefs.getInt(PREF_HISTORY_BOOT, -1), bootCount(c));
+    }
+
+    /** The stored history if it was written in this boot, otherwise empty. */
+    static String currentHistory(String stored, int storedBoot, int boot) {
+        return storedBoot == boot ? stored : "";
     }
 
     private static int bootCount(Context c) {
@@ -176,18 +181,31 @@ final class Hider {
     private static void log(Context c, long now, String reason, int before, String change) {
         long uptime = SystemClock.elapsedRealtime();
         Log.i(TAG, reason + " uptime=" + uptime + "ms before=" + before + change);
-        record(c, String.format(Locale.ROOT, "%tT  +%.1f s  %s  %d%s", now,
-                uptime / 1000.0, shortReason(reason), before, change));
+        record(c, historyLine(now, uptime, reason, before, change));
+    }
+
+    /**
+     * "time  +uptime s  reason  before[→after][  off|paused]", split on two spaces by
+     * MainActivity.showHistory. Locale.ROOT so the uptime parses back with a decimal point.
+     */
+    static String historyLine(long now, long uptime, String reason, int before, String change) {
+        return String.format(Locale.ROOT, "%tT  +%.1f s  %s  %d%s", now,
+                uptime / 1000.0, shortReason(reason), before, change);
     }
 
     private static void record(Context c, String line) {
-        String[] old = history(c).split("\n");
+        prefs(c).edit().putString(PREF_HISTORY, prepend(history(c), line))
+                .putInt(PREF_HISTORY_BOOT, bootCount(c)).commit();
+    }
+
+    /** Puts line first and keeps the newest HISTORY_SIZE lines. */
+    static String prepend(String history, String line) {
+        String[] old = history.split("\n");
         StringBuilder sb = new StringBuilder(line);
         for (int i = 0; i < old.length && i < HISTORY_SIZE - 1; i++) {
             if (!old[i].isEmpty()) sb.append('\n').append(old[i]);
         }
-        prefs(c).edit().putString(PREF_HISTORY, sb.toString())
-                .putInt(PREF_HISTORY_BOOT, bootCount(c)).commit();
+        return sb.toString();
     }
 
     private static String shortReason(String reason) {
@@ -198,21 +216,33 @@ final class Hider {
     /** Remembers this write; true once LOOP_WRITES of them fall within LOOP_WINDOW_MS. */
     private static boolean recordWrite(Context c, long now) {
         SharedPreferences prefs = prefs(c);
-        // Wall-clock, newest first; elapsedRealtime would mix up runs from different boots.
+        String writes = recentWrites(prefs.getString(PREF_WRITES, ""), now);
+        prefs.edit().putString(PREF_WRITES, writes).commit();
+        return isLoop(writes, now);
+    }
+
+    /**
+     * Puts now in front of the stored write times and keeps the newest LOOP_WRITES of them.
+     * Wall-clock, newest first; elapsedRealtime would mix up runs from different boots.
+     */
+    static String recentWrites(String stored, long now) {
         StringBuilder sb = new StringBuilder().append(now);
         int count = 1;
-        long oldest = now;
-        for (String s : prefs.getString(PREF_WRITES, "").split(",")) {
+        for (String s : stored.split(",")) {
             if (count == LOOP_WRITES) break;
             if (s.isEmpty()) continue;
             long t = Long.parseLong(s);
             if (t > now) continue; // clock was set back
             sb.append(',').append(t);
-            oldest = t;
             count++;
         }
-        prefs.edit().putString(PREF_WRITES, sb.toString()).commit();
-        return count == LOOP_WRITES && now - oldest < LOOP_WINDOW_MS;
+        return sb.toString();
+    }
+
+    /** True if recentWrites() holds LOOP_WRITES times and the oldest is within LOOP_WINDOW_MS. */
+    static boolean isLoop(String writes, long now) {
+        String[] t = writes.split(",");
+        return t.length == LOOP_WRITES && now - Long.parseLong(t[t.length - 1]) < LOOP_WINDOW_MS;
     }
 
     /** Switches off without writing 0: whoever keeps resetting the value gets to keep it. */
