@@ -22,6 +22,14 @@ android {
         versionName = "1.4"
     }
 
+    // English is the default (res/resources.properties); values-de/ adds German. The generated
+    // LocaleConfig lists both under Settings > Apps > Language, and other languages fall back
+    // to English.
+    androidResources {
+        generateLocaleConfig = true
+        localeFilters += listOf("en", "de")
+    }
+
     signingConfigs {
         if (keystoreProps.isNotEmpty()) {
             create("release") {

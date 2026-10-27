@@ -84,11 +84,12 @@ final class Hider {
         }
         if (wrote || (before == 1 && hasWritePermission(c))) clearMissingPermission(c);
         long now = System.currentTimeMillis();
-        String suffix = on ? "" : "  aus";
+        // Keys, not labels: the status screen translates them when it shows the history.
+        String suffix = on ? "" : "  off";
         if (wrote && recordWrite(c, now)) {
             pause(c, now);
             on = false;
-            suffix = "  pausiert";
+            suffix = "  paused";
         }
         if (wrote || !"activity".equals(reason)) {
             log(c, now, reason, before, wrote ? "→1" + suffix : suffix);
@@ -185,12 +186,10 @@ final class Hider {
         prefs(c).edit().putBoolean(PREF_DISABLED, true).putLong(PREF_PAUSED_AT, now).commit();
         c.getSystemService(JobScheduler.class).cancel(JOB_ID);
         Log.w(TAG, "value reset " + LOOP_WRITES + " times within " + LOOP_WINDOW_MS + " ms, paused");
-        String text = String.format(Locale.ROOT,
-                "Der Wert wurde %d-mal in %d s zurückgesetzt, zum Beispiel durch die aktivierte "
-                        + "Alexa-App. Die App schreibt nicht mehr, bis du sie öffnest und den "
-                        + "Schalter wieder einschaltest.", LOOP_WRITES, LOOP_WINDOW_MS / 1000);
-        post(c, NOTIFICATION_LOOP_ID, CHANNEL_LOOP_ID, "Schleifenschutz",
-                "Alexa Icon Hider: pausiert", "Der Wert wird ständig zurückgesetzt.", text);
+        post(c, NOTIFICATION_LOOP_ID, CHANNEL_LOOP_ID, c.getString(R.string.channel_loop),
+                c.getString(R.string.notify_paused_title),
+                c.getString(R.string.notify_paused_text),
+                c.getString(R.string.notify_paused_big, LOOP_WRITES, LOOP_WINDOW_MS / 1000));
     }
 
     /**
@@ -220,9 +219,9 @@ final class Hider {
         if (prefs.getBoolean(PREF_NOTIFIED, false)) return;
         String cmd = grantCommand();
         Log.w(TAG, "WRITE_SECURE_SETTINGS missing, grant with: " + cmd);
-        if (post(c, NOTIFICATION_ID, CHANNEL_ID, "Berechtigung",
-                "Alexa Icon Hider: Berechtigung fehlt", "Einmalig per ADB ausführen:",
-                "Einmalig per ADB ausführen:\n" + cmd)) {
+        String text = c.getString(R.string.notify_permission_text);
+        if (post(c, NOTIFICATION_ID, CHANNEL_ID, c.getString(R.string.channel_permission),
+                c.getString(R.string.notify_permission_title), text, text + "\n" + cmd)) {
             prefs.edit().putBoolean(PREF_NOTIFIED, true).apply();
         }
     }

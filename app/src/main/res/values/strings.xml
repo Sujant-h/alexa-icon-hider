@@ -1,62 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- English is the default; other languages live in values-<lang>/ and fall back to this file. -->
 <resources>
-    <string name="app_name">Alexa Icon Hider</string>
+    <string name="app_name" translatable="false">Alexa Icon Hider</string>
 
-    <string name="state_active">Aktiv</string>
-    <string name="state_off">Aus</string>
-    <string name="state_paused">Pausiert</string>
-    <string name="state_setup">Einrichtung nötig</string>
+    <string name="state_active">Active</string>
+    <string name="state_off">Off</string>
+    <string name="state_paused">Paused</string>
+    <string name="state_setup">Setup needed</string>
 
-    <string name="headline_hidden">Das Alexa-Symbol ist ausgeblendet.</string>
-    <string name="headline_visible">Das Alexa-Symbol ist sichtbar.</string>
-    <string name="headline_paused">Ausblenden pausiert.</string>
-    <string name="headline_setup">Eine Berechtigung fehlt noch.</string>
+    <string name="headline_hidden">The Alexa icon is hidden.</string>
+    <string name="headline_visible">The Alexa icon is visible.</string>
+    <string name="headline_paused">Hiding is paused.</string>
+    <string name="headline_setup">A permission is still missing.</string>
 
-    <string name="summary_on">Nach jedem Boot und jedem Zurücksetzen setzt die App den Wert sofort wieder. Sie läuft nur, wenn sich etwas ändert, ohne Dienst und ohne Polling.</string>
-    <string name="summary_off">Die App schreibt nichts, auch nicht nach einem Neustart. Mit dem Schalter blendest du das Symbol wieder aus.</string>
-    <string name="summary_paused">Die App hat sich selbst ausgeschaltet und schreibt nichts mehr, bis du den Schalter wieder einschaltest.</string>
-    <string name="summary_setup">Ohne WRITE_SECURE_SETTINGS kann die App den Wert nicht setzen. Die Berechtigung erteilst du einmalig per ADB.</string>
+    <string name="summary_on">After every boot and every reset, the app sets the value again right away. It only runs when something changes, with no service and no polling.</string>
+    <string name="summary_off">The app writes nothing, not even after a restart. Use the switch to hide the icon again.</string>
+    <string name="summary_paused">The app switched itself off and writes nothing until you turn the switch back on.</string>
+    <string name="summary_setup">Without WRITE_SECURE_SETTINGS the app cannot set the value. You grant the permission once via ADB.</string>
 
-    <string name="toggle_title">Alexa-Symbol ausblenden</string>
-    <string name="toggle_summary">Automatisch nach jedem Boot und Reset</string>
+    <string name="toggle_title">Hide Alexa icon</string>
+    <string name="toggle_summary">Automatically after every boot and reset</string>
 
-    <string name="callout_paused_title">Schleifenschutz hat ausgelöst</string>
-    <string name="callout_paused_text">Der Wert wurde %1$d-mal in %2$d s zurückgesetzt, zuletzt um %3$tT, zum Beispiel durch die aktivierte Alexa-App. Wenn du wieder einschaltest, beginnt der Zähler von vorn.</string>
-    <string name="callout_setup_title">Einmalig am Computer ausführen</string>
-    <string name="callout_setup_text">Tablet per USB- oder WLAN-Debugging verbinden und diesen Befehl ausführen. Danach die App neu öffnen.</string>
-    <string name="copy">Kopieren</string>
-    <string name="copied">Kopiert</string>
+    <string name="callout_paused_title">Loop guard triggered</string>
+    <string name="callout_paused_text">The value was reset %1$d times in %2$d s, last at %3$tT, for example by the enabled Alexa app. When you switch back on, the counter starts over.</string>
+    <string name="callout_setup_title">Run once on a computer</string>
+    <string name="callout_setup_text">Connect the tablet via USB or wireless debugging and run this command. Then reopen the app.</string>
+    <string name="copy">Copy</string>
+    <string name="copied">Copied</string>
 
-    <string name="figure_caption">Fig. 01 · Taskleiste</string>
-    <string name="figure_hidden">ausgeblendet</string>
-    <string name="figure_visible">sichtbar</string>
-    <string name="figure_description">Skizze der Taskleiste, Alexa-Symbol %1$s</string>
+    <string name="figure_caption">Fig. 01 · Taskbar</string>
+    <string name="figure_hidden">hidden</string>
+    <string name="figure_visible">visible</string>
+    <string name="figure_description">Sketch of the taskbar, Alexa icon %1$s</string>
 
     <string name="section_system">System</string>
     <string name="row_setting">Setting</string>
     <string name="row_setting_key" translatable="false">alexa_app_in_foreground</string>
-    <string name="row_permission">Berechtigung</string>
+    <string name="row_permission">Permission</string>
     <string name="row_permission_key" translatable="false">WRITE_SECURE_SETTINGS</string>
-    <string name="row_trigger">Änderungs-Trigger</string>
-    <string name="row_trigger_key">JobScheduler · Content-URI</string>
-    <string name="granted">erteilt</string>
-    <string name="missing">fehlt</string>
-    <string name="active">aktiv</string>
-    <string name="inactive">inaktiv</string>
+    <string name="row_trigger">Change trigger</string>
+    <string name="row_trigger_key">JobScheduler · Content URI</string>
+    <string name="granted">granted</string>
+    <string name="missing">missing</string>
+    <string name="active">active</string>
+    <string name="inactive">inactive</string>
 
-    <string name="section_history">Verlauf</string>
-    <string name="history_hint">Letzte 20 Läufe</string>
-    <string name="col_time">Uhrzeit</string>
-    <string name="col_uptime">Seit Boot</string>
-    <string name="col_reason">Anlass</string>
-    <string name="col_value">Wert</string>
-    <string name="history_empty">Noch keine Läufe aufgezeichnet.</string>
+    <string name="section_history">History</string>
+    <string name="history_hint">Last 20 runs</string>
+    <string name="col_time">Time</string>
+    <string name="col_uptime">Since boot</string>
+    <string name="col_reason">Reason</string>
+    <string name="col_value">Value</string>
+    <string name="history_empty">No runs recorded yet.</string>
 
-    <string name="reason_activity">App geöffnet</string>
-    <string name="reason_on">Eingeschaltet</string>
-    <string name="reason_off">Ausgeschaltet</string>
-    <string name="reason_trigger">Wert geändert</string>
-    <string name="reason_locked_boot">Boot, gesperrt</string>
+    <string name="reason_activity">App opened</string>
+    <string name="reason_on">Switched on</string>
+    <string name="reason_off">Switched off</string>
+    <string name="reason_trigger">Value changed</string>
+    <string name="reason_locked_boot">Boot, locked</string>
     <string name="reason_boot">Boot</string>
     <string name="reason_update">Update</string>
+
+    <string name="flag_off">off</string>
+    <string name="flag_paused">paused</string>
+
+    <string name="channel_loop">Loop guard</string>
+    <string name="notify_paused_title">Alexa Icon Hider: paused</string>
+    <string name="notify_paused_text">The value keeps getting reset.</string>
+    <string name="notify_paused_big">The value was reset %1$d times in %2$d s, for example by the enabled Alexa app. The app stops writing until you open it and turn the switch back on.</string>
+    <string name="channel_permission">Permission</string>
+    <string name="notify_permission_title">Alexa Icon Hider: permission missing</string>
+    <string name="notify_permission_text">Run once via ADB:</string>
 </resources>

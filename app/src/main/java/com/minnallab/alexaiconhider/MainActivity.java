@@ -221,12 +221,12 @@ public final class MainActivity extends Activity {
         for (String line : all.split("\n")) {
             LinearLayout row = new LinearLayout(this, null, 0, R.style.Row);
             row.setMinimumHeight(0);
-            // Hider.log: "time  +uptime s  reason  before[→after][  aus|pausiert]".
+            // Hider.log: "time  +uptime s  reason  before[→after][  off|paused]".
             String[] f = line.split(" {2}");
             if (f.length < 4) {
                 addHistoryCells(row, R.style.Text_Mono, line);
             } else {
-                String reason = reasonLabel(f[2]) + (f.length > 4 ? " · " + f[4] : "");
+                String reason = reasonLabel(f[2]) + (f.length > 4 ? " · " + flagLabel(f[4]) : "");
                 addHistoryCells(row, R.style.Text_Mono, f[0], f[1], reason, f[3]);
                 TextView uptime = (TextView) row.getChildAt(1);
                 uptime.setTextColor(getColor(R.color.subtle));
@@ -261,6 +261,14 @@ public final class MainActivity extends Activity {
             case "BOOT_COMPLETED": return getString(R.string.reason_boot);
             case "MY_PACKAGE_REPLACED": return getString(R.string.reason_update);
             default: return reason;
+        }
+    }
+
+    private String flagLabel(String flag) {
+        switch (flag) {
+            case "off": return getString(R.string.flag_off);
+            case "paused": return getString(R.string.flag_paused);
+            default: return flag;
         }
     }
 
