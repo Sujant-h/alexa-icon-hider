@@ -95,7 +95,7 @@ Das Symbol erscheint danach sofort wieder.
 
 ## Bauen
 
-Java 17 Bytecode, AGP 9.4.1, Gradle 9.7.1 (Wrapper mit SHA-256), compileSdk/targetSdk/minSdk 36, R8 mit `isMinifyEnabled` und `isShrinkResources`. Das in AGP 9 eingebaute Kotlin ist abgeschaltet (`android.builtInKotlin=false`). Sonst kämen die Kotlin-Stdlib und 12 KB Builtins in die APK.
+Java 17 Bytecode, AGP 9.4.1, Gradle 9.8.2 (Wrapper mit SHA-256), compileSdk/targetSdk/minSdk 36, R8 mit `isMinifyEnabled` und `isShrinkResources`. Das in AGP 9 eingebaute Kotlin ist abgeschaltet (`android.builtInKotlin=false`). Sonst kämen die Kotlin-Stdlib und 12 KB Builtins in die APK.
 
 ```bash
 ./gradlew assembleRelease
