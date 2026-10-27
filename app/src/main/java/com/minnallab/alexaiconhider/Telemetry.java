@@ -74,19 +74,15 @@ final class Telemetry {
         }
         writeDtcp(c, dtcp);
         // Our own writes run after the service, so it still sees the change and reports it.
-        Runnable finish = () -> {
+        AmazonAdId.call(c, service -> {
+            AmazonAdId.setAdvertisingTracking(service, track == 0);
+            if (on) AmazonAdId.resetAllAdvertisingIds(service);
+        }, ran -> {
+            if (on && !ran) writeAdvertisingId(c);
             writeTrack(c, track);
             log(on ? "on" : "off", on, trackBefore, dtcpBefore, c);
             done.run();
-        };
-        boolean bound = AmazonAdId.call(c, service -> {
-            AmazonAdId.setAdvertisingTracking(service, track == 0);
-            if (on) AmazonAdId.resetAllAdvertisingIds(service);
-        }, finish);
-        if (!bound) {
-            if (on) writeAdvertisingId(c);
-            finish.run();
-        }
+        });
     }
 
     /** Idempotent: writes the blocked values when on, nothing when off. */
@@ -117,10 +113,10 @@ final class Telemetry {
             done.run();
             return;
         }
-        if (!AmazonAdId.call(c, AmazonAdId::resetAllAdvertisingIds, done)) {
-            writeAdvertisingId(c);
+        AmazonAdId.call(c, AmazonAdId::resetAllAdvertisingIds, ran -> {
+            if (!ran) writeAdvertisingId(c);
             done.run();
-        }
+        });
     }
 
     private static void writeAdvertisingId(Context c) {

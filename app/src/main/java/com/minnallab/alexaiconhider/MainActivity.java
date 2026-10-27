@@ -135,9 +135,15 @@ public final class MainActivity extends Activity {
         telemetryToggle.setText(telemetryLabel());
         // Click, not checked-change, so only the user's tap toggles, not showStatus().
         // Amazon's ad id service answers asynchronously, so the rows refresh when it is done.
-        telemetryToggle.setOnClickListener(v ->
-                Telemetry.setEnabled(this, telemetryToggle.isChecked(), this::showPrivacy));
-        resetAdId.setOnClickListener(v -> Telemetry.resetAdvertisingId(this, this::showPrivacy));
+        // Both stay disabled until then, or a second tap would read values not yet written.
+        telemetryToggle.setOnClickListener(v -> {
+            setPrivacyBusy(true);
+            Telemetry.setEnabled(this, telemetryToggle.isChecked(), this::privacyDone);
+        });
+        resetAdId.setOnClickListener(v -> {
+            setPrivacyBusy(true);
+            Telemetry.resetAdvertisingId(this, this::privacyDone);
+        });
         addHistoryCells((LinearLayout) findViewById(R.id.history_header), R.style.Text_Eyebrow,
                 getString(R.string.col_time), getString(R.string.col_uptime),
                 getString(R.string.col_reason), getString(R.string.col_value));
@@ -447,6 +453,16 @@ public final class MainActivity extends Activity {
     }
 
     private final Runnable resetCopy = () -> copy.setText(R.string.copy);
+
+    private void setPrivacyBusy(boolean busy) {
+        telemetryToggle.setEnabled(!busy);
+        resetAdId.setEnabled(!busy);
+    }
+
+    private void privacyDone() {
+        setPrivacyBusy(false);
+        showPrivacy();
+    }
 
     private void showPrivacy() {
         boolean on = Telemetry.isEnabled(this);

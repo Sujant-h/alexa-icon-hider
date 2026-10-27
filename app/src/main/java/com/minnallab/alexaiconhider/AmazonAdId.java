@@ -4,7 +4,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Parcel;
 import android.os.RemoteException;
 import android.util.Log;
@@ -30,58 +32,98 @@ final class AmazonAdId {
     private static final int TX_SET_ADVERTISING_TRACKING = 3;
     private static final int TX_RESET_ALL_ADVERTISING_IDS = 4;
 
+    // A service that binds but never answers must not leave the toggle half applied.
+    private static final long TIMEOUT_MS = 5000;
+
     interface Calls {
         void run(IBinder service) throws RemoteException;
+    }
+
+    interface Done {
+        /** ran is false if the service is missing, timed out or a call failed. */
+        void run(boolean ran);
     }
 
     private AmazonAdId() {}
 
     /**
-     * Binds, runs the calls on the main thread, unbinds and then runs done, also when a call
-     * fails. Returns false without running anything if the service is not there, so the
-     * caller falls back to writing the settings itself.
+     * Binds, runs the calls on the main thread, unbinds and then runs done exactly once.
+     * If the service is not there, done(false) runs right away, so the caller falls back to
+     * writing the settings itself.
      */
-    static boolean call(Context c, Calls calls, Runnable done) {
-        Context app = c.getApplicationContext();
-        ServiceConnection conn = new ServiceConnection() {
-            private boolean finished;
-
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                try {
-                    calls.run(service);
-                } catch (RemoteException | RuntimeException e) {
-                    Log.w(TAG, "call failed", e);
-                }
-                finish();
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {}
-
-            @Override
-            public void onBindingDied(ComponentName name) {
-                finish();
-            }
-
-            @Override
-            public void onNullBinding(ComponentName name) {
-                finish();
-            }
-
-            private void finish() {
-                if (finished) return;
-                finished = true;
-                app.unbindService(this);
-                done.run();
-            }
-        };
-        if (app.bindService(new Intent().setComponent(SERVICE), conn, Context.BIND_AUTO_CREATE)) {
-            return true;
+    static void call(Context c, Calls calls, Done done) {
+        Connection conn = new Connection(c.getApplicationContext(), calls, done);
+        boolean bound;
+        try {
+            bound = conn.app.bindService(new Intent().setComponent(SERVICE), conn,
+                    Context.BIND_AUTO_CREATE);
+        } catch (SecurityException e) {
+            // Another firmware may not export the service or guard it with a permission.
+            Log.w(TAG, "bind rejected", e);
+            bound = false;
         }
-        app.unbindService(conn);
-        Log.w(TAG, "service not available");
-        return false;
+        if (bound) {
+            conn.main.postDelayed(conn.timeout, TIMEOUT_MS);
+        } else {
+            Log.w(TAG, "service not available");
+            conn.finish(false);
+        }
+    }
+
+    private static final class Connection implements ServiceConnection {
+        final Context app;
+        final Handler main = new Handler(Looper.getMainLooper());
+        final Runnable timeout = () -> {
+            Log.w(TAG, "service did not answer");
+            finish(false);
+        };
+        private final Calls calls;
+        private final Done done;
+        private boolean finished;
+
+        Connection(Context app, Calls calls, Done done) {
+            this.app = app;
+            this.calls = calls;
+            this.done = done;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            if (finished) return;
+            boolean ran = false;
+            try {
+                calls.run(service);
+                ran = true;
+            } catch (RemoteException | RuntimeException e) {
+                Log.w(TAG, "call failed", e);
+            }
+            finish(ran);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {}
+
+        @Override
+        public void onBindingDied(ComponentName name) {
+            finish(false);
+        }
+
+        @Override
+        public void onNullBinding(ComponentName name) {
+            finish(false);
+        }
+
+        void finish(boolean ran) {
+            if (finished) return;
+            finished = true;
+            main.removeCallbacks(timeout);
+            try {
+                app.unbindService(this);
+            } catch (IllegalArgumentException e) {
+                // Not registered, e.g. after bindService threw.
+            }
+            done.run(ran);
+        }
     }
 
     static void setAdvertisingTracking(IBinder service, boolean enabled)
