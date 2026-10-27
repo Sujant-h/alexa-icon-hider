@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A ring, like the Alexa button, struck through. Arcs leave a gap where the slash crosses. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M70.26,49.03A17,17 0,0 1,49.03 70.26M37.74,58.97A17,17 0,0 1,58.97 37.74"
+        android:strokeWidth="5.5"
+        android:strokeColor="#FFFFFF" />
+    <path
+        android:pathData="M37.7,70.3L70.3,37.7"
+        android:strokeLineCap="round"
+        android:strokeWidth="5.5"
+        android:strokeColor="#FFFFFF" />
+</vector>

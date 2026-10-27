@@ -5,6 +5,7 @@
 - Ein/Aus-Schalter in der App. „Aus“ hebt den Änderungs-Trigger auf und setzt `alexa_app_in_foreground` auf 0, das Symbol erscheint sofort wieder. Der Zustand übersteht Neustarts und Updates.
 - Schleifenschutz: Muss die App den Wert 10-mal innerhalb von 60 s neu setzen, schaltet sie sich selbst aus und meldet das per Benachrichtigung. Den Wert lässt sie dabei, wie er ist. Mit dem Schalter geht es weiter.
 - Der Verlauf zeigt ausgeschaltete Läufe mit `aus` und das automatische Ausschalten mit `pausiert`.
+- Neues Design im Stil von minnallab.com: Statuszeile, Schalter als Karte, Skizze der Taskleiste, Systemwerte und Verlauf als Tabelle, zweispaltig auf dem Tablet, helles und dunkles Theme. Fehlt die Berechtigung, lässt sich der `pm grant`-Befehl direkt kopieren. Dazu ein App-Symbol.
 - Die Statusanzeige aktualisiert sich, solange die App offen ist, sobald sich der Wert ändert.
 
 ## 1.3 (versionCode 4), 27.10.2026

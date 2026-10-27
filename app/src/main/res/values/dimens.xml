@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="page_margin">20dp</dimen>
+    <dimen name="column_gap">40dp</dimen>
+    <dimen name="display">32sp</dimen>
+    <bool name="wide">false</bool>
+</resources>

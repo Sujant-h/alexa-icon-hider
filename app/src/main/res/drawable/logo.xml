@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minnal Lab mark, as in the minnallab.com header. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <path
+        android:fillColor="#0F766E"
+        android:pathData="M7,0H25A7,7 0,0 1,32 7V25A7,7 0,0 1,25 32H7A7,7 0,0 1,0 25V7A7,7 0,0 1,7 0Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,25V7h4.4L16,13.8 21.6,7H26v18h-4.4V13.9L18.22,18h2.18L13.65,26.2L16.55,20.4H13.65L10.4,13.9V25Z" />
+</vector>

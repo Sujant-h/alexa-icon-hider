@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zinc neutrals and teal accent from minnallab.com. Dark values in values-night. -->
+<resources>
+    <color name="bg">#FFFFFF</color>
+    <color name="surface">#FAFAFA</color>
+    <color name="line">#E4E4E7</color>
+    <color name="line_strong">#D4D4D8</color>
+    <color name="grid">#F4F4F5</color>
+    <color name="text">#18181B</color>
+    <color name="muted">#52525B</color>
+    <color name="subtle">#71717A</color>
+    <color name="accent">#0F766E</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="accent_halo">#330F766E</color>
+    <color name="warn">#B45309</color>
+    <color name="warn_soft">#FFFBEB</color>
+    <color name="warn_line">#FDE68A</color>
+    <color name="ripple">#14000000</color>
+    <color name="thumb">#FFFFFF</color>
+</resources>

@@ -1,6 +1,6 @@
 # Alexa Icon Hider
 
-Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton`) in der Taskleiste des Fire Launchers dauerhaft aus. Root ist nicht nötig, und MacroDroid wird damit überflüssig. Die APK ist rund 15 KB groß und kommt ohne AndroidX und ohne Bibliotheken aus. Sie läuft ohne Dienst, ohne Polling und ohne Wakelocks.
+Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton`) in der Taskleiste des Fire Launchers dauerhaft aus. Root ist nicht nötig, und MacroDroid wird damit überflüssig. Die APK ist rund 45 KB groß und kommt ohne AndroidX und ohne Bibliotheken aus. Sie läuft ohne Dienst, ohne Polling und ohne Wakelocks.
 
 ## Kompatibilität
 

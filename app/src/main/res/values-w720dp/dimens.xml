@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Two columns: status and switch on the left, system values and history on the right. -->
+<resources>
+    <dimen name="column_gap">56dp</dimen>
+    <bool name="wide">true</bool>
+</resources>
