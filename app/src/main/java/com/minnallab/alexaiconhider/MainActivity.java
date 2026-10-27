@@ -134,14 +134,10 @@ public final class MainActivity extends Activity {
 
         telemetryToggle.setText(telemetryLabel());
         // Click, not checked-change, so only the user's tap toggles, not showStatus().
-        telemetryToggle.setOnClickListener(v -> {
-            Telemetry.setEnabled(this, telemetryToggle.isChecked());
-            showPrivacy();
-        });
-        resetAdId.setOnClickListener(v -> {
-            Telemetry.resetAdvertisingId(this);
-            showPrivacy();
-        });
+        // Amazon's ad id service answers asynchronously, so the rows refresh when it is done.
+        telemetryToggle.setOnClickListener(v ->
+                Telemetry.setEnabled(this, telemetryToggle.isChecked(), this::showPrivacy));
+        resetAdId.setOnClickListener(v -> Telemetry.resetAdvertisingId(this, this::showPrivacy));
         addHistoryCells((LinearLayout) findViewById(R.id.history_header), R.style.Text_Eyebrow,
                 getString(R.string.col_time), getString(R.string.col_uptime),
                 getString(R.string.col_reason), getString(R.string.col_value));

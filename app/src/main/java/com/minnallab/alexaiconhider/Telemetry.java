@@ -17,13 +17,18 @@ import java.util.UUID;
  * Alexa key, SystemUI does not reset these on boot, so a one-shot write on toggle/boot/open
  * is enough: no change-trigger job and no loop guard.
  *
- * While off we never write, so boot and updates leave the user's own Fire OS choice alone.
- * Switching off restores the values that were there when the user switched on.
+ * While off we never write, so boot and updates leave the user's own choice in Settings
+ * alone. Switching off restores the values that were there when the user switched on.
  *
  * Switching on also resets the advertising id once. Amazon's policy forbids apps to carry
  * earlier data over to a new id, so this cuts the profile collected so far. We do not rotate
  * it periodically: with limit_ad_tracking set, the id is only left for frequency capping
  * and attribution, and that would need a recurring job.
+ *
+ * The user's taps go through Amazon's ad id service (AmazonAdId), like the Settings app, so
+ * the ad backend learns about the change and the per-app ad ids are renewed too. Boot and
+ * updates only re-write the keys. amz_limit_ad_tracking and non_amz_limit_ad_tracking also
+ * exist, but the service only defaults them to 0 and nothing on the device reads them.
  */
 final class Telemetry {
     static final String TAG = "Telemetry";
@@ -45,31 +50,43 @@ final class Telemetry {
     /**
      * On saves the current values first and resets the advertising id; off writes the saved
      * values back and forgets them. Only the user's tap gets here, never boot or update.
+     * The service answers asynchronously, so done runs once everything is written.
      */
-    static void setEnabled(Context c, boolean on) {
+    static void setEnabled(Context c, boolean on, Runnable done) {
         SharedPreferences p = prefs(c);
-        if (on) {
-            if (!p.contains(PREF_SAVED_TRACK)) {
-                p.edit().putInt(PREF_SAVED_TRACK, currentTrack(c))
-                        .putInt(PREF_SAVED_DTCP, currentDtcp(c)).commit();
-            }
-            p.edit().putBoolean(PREF_DISABLED, true).commit();
-            apply(c, "on");
-            if (hasWritePermission(c)) {
-                resetAdvertisingId(c);
-                Log.i(TAG, "on advertising_id reset");
-            }
-            return;
-        }
-        p.edit().putBoolean(PREF_DISABLED, false).commit();
         int trackBefore = currentTrack(c);
         int dtcpBefore = currentDtcp(c);
-        if (p.contains(PREF_SAVED_TRACK) && hasWritePermission(c)) {
-            writeTrack(c, p.getInt(PREF_SAVED_TRACK, 0));
-            writeDtcp(c, p.getInt(PREF_SAVED_DTCP, 1));
+        if (on && !p.contains(PREF_SAVED_TRACK)) {
+            p.edit().putInt(PREF_SAVED_TRACK, trackBefore)
+                    .putInt(PREF_SAVED_DTCP, dtcpBefore).commit();
         }
-        p.edit().remove(PREF_SAVED_TRACK).remove(PREF_SAVED_DTCP).commit();
-        log("off", false, trackBefore, dtcpBefore, c);
+        p.edit().putBoolean(PREF_DISABLED, on).commit();
+        boolean restore = on || p.contains(PREF_SAVED_TRACK);
+        int track = on ? 1 : p.getInt(PREF_SAVED_TRACK, 0);
+        int dtcp = on ? 0 : p.getInt(PREF_SAVED_DTCP, 1);
+        if (!on) {
+            p.edit().remove(PREF_SAVED_TRACK).remove(PREF_SAVED_DTCP).commit();
+        }
+        if (!restore || !hasWritePermission(c)) {
+            log(on ? "on" : "off", on, trackBefore, dtcpBefore, c);
+            done.run();
+            return;
+        }
+        writeDtcp(c, dtcp);
+        // Our own writes run after the service, so it still sees the change and reports it.
+        Runnable finish = () -> {
+            writeTrack(c, track);
+            log(on ? "on" : "off", on, trackBefore, dtcpBefore, c);
+            done.run();
+        };
+        boolean bound = AmazonAdId.call(c, service -> {
+            AmazonAdId.setAdvertisingTracking(service, track == 0);
+            if (on) AmazonAdId.resetAllAdvertisingIds(service);
+        }, finish);
+        if (!bound) {
+            if (on) writeAdvertisingId(c);
+            finish.run();
+        }
     }
 
     /** Idempotent: writes the blocked values when on, nothing when off. */
@@ -91,13 +108,28 @@ final class Telemetry {
                 + " IS_DTCP_ENABLED=" + dtcpBefore + "->" + currentDtcp(c));
     }
 
-    /** A fresh advertising id de-links this device from Amazon's ad profile. */
-    static String resetAdvertisingId(Context c) {
-        String id = UUID.randomUUID().toString();
-        if (hasWritePermission(c)) {
-            Settings.Secure.putString(c.getContentResolver(), KEY_ADVERTISING_ID, id);
+    /**
+     * A fresh advertising id de-links this device from Amazon's ad profile. The service also
+     * renews the per-app ids; without it we can only write advertising_id.
+     */
+    static void resetAdvertisingId(Context c, Runnable done) {
+        if (!hasWritePermission(c)) {
+            done.run();
+            return;
         }
-        return id;
+        if (!AmazonAdId.call(c, AmazonAdId::resetAllAdvertisingIds, done)) {
+            writeAdvertisingId(c);
+            done.run();
+        }
+    }
+
+    private static void writeAdvertisingId(Context c) {
+        try {
+            Settings.Secure.putString(c.getContentResolver(), KEY_ADVERTISING_ID,
+                    UUID.randomUUID().toString());
+        } catch (SecurityException e) {
+            Log.w(TAG, "write advertising_id rejected", e);
+        }
     }
 
     static boolean hasWritePermission(Context c) {
