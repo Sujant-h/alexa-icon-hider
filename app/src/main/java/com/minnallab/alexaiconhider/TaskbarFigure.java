@@ -14,7 +14,8 @@ import android.view.animation.PathInterpolator;
 
 /**
  * Fig. 01 on the status screen: a sketch of the Fire Launcher taskbar on a lab grid. The
- * Alexa button is drawn as a ring when visible and as a dashed outline when hidden.
+ * Alexa widget sits at the right edge as a dark pill when visible and is left as a dashed
+ * outline when hidden.
  */
 public final class TaskbarFigure extends View {
     private final float dp;
@@ -23,6 +24,7 @@ public final class TaskbarFigure extends View {
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint dashed = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint label = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint word = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final int bg, line, lineStrong, gridColor, text, subtle, accent, onAccent, halo;
 
@@ -54,6 +56,10 @@ public final class TaskbarFigure extends View {
                 TypedValue.COMPLEX_UNIT_SP, 10, getResources().getDisplayMetrics()));
         label.setTextAlign(Paint.Align.CENTER);
         label.setColor(onAccent);
+        word.setTypeface(Typeface.create(Typeface.DEFAULT, 600, false));
+        word.setTextSize(TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_SP, 12, getResources().getDisplayMetrics()));
+        word.setColor(bg);
     }
 
     void setHidden(boolean h, boolean animate) {
@@ -87,54 +93,70 @@ public final class TaskbarFigure extends View {
         for (float x = step; x < w; x += step) canvas.drawLine(x, 0, x, h, grid);
         for (float y = step; y < h; y += step) canvas.drawLine(0, y, w, y, grid);
 
-        // Taskbar, slightly below center to leave room for the marker.
-        float barH = 44 * dp;
-        float inset = Math.min(32 * dp, w * 0.06f);
+        // Bottom row, slightly below center to leave room for the marker.
+        float barH = 40 * dp;
+        float inset = Math.min(24 * dp, w * 0.05f);
         float top = (h - barH) / 2 + 12 * dp;
-        rect.set(inset, top, w - inset, top + barH);
+        float cy = top + barH / 2;
+
+        // The Alexa widget sits at the right edge: logo ring, wordmark and mic in a dark pill.
+        float wordW = word.measureText("Alexa");
+        float widgetW = 34 * dp + wordW + 30 * dp;
+        float wRight = w - inset;
+        float wLeft = wRight - widgetW;
+
+        // Floating dock with the app tiles, centered unless the widget is in the way.
+        float tile = 20 * dp;
+        int tiles = 3;
+        float dockW = 2 * 14 * dp + tiles * tile + (tiles - 1) * 10 * dp;
+        float dockLeft = Math.max(inset, Math.min(w / 2, wLeft - 16 * dp - dockW / 2) - dockW / 2);
+        rect.set(dockLeft, top, dockLeft + dockW, top + barH);
         fill.setColor(bg);
-        canvas.drawRoundRect(rect, barH / 2, barH / 2, fill);
+        canvas.drawRoundRect(rect, 14 * dp, 14 * dp, fill);
         stroke.setStrokeWidth(1 * dp);
         stroke.setColor(lineStrong);
-        canvas.drawRoundRect(rect, barH / 2, barH / 2, stroke);
-
-        // App tiles.
-        float cy = top + barH / 2;
-        float tile = 20 * dp;
-        float x = rect.left + 18 * dp;
+        stroke.setAlpha(255);
+        canvas.drawRoundRect(rect, 14 * dp, 14 * dp, stroke);
+        float x = dockLeft + 14 * dp;
         fill.setColor(line);
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < tiles; i++) {
             rect.set(x, cy - tile / 2, x + tile, cy + tile / 2);
             canvas.drawRoundRect(rect, 5 * dp, 5 * dp, fill);
             x += tile + 10 * dp;
         }
 
-        // System area: clock and status dots.
-        float right = w - inset - 18 * dp;
-        for (int i = 0; i < 3; i++) {
-            canvas.drawCircle(right - 3 * dp, cy, 3 * dp, fill);
-            right -= 14 * dp;
-        }
-        rect.set(right - 30 * dp, cy - 3 * dp, right, cy + 3 * dp);
-        canvas.drawRoundRect(rect, 3 * dp, 3 * dp, fill);
-
-        // The Alexa button: a ring that fades into a dashed outline.
-        float r = 10 * dp;
-        float cx = x + 14 * dp + r;
+        // The widget fades out and leaves a dashed outline where it was.
         float t = Math.max(0, hidden);
-        stroke.setStrokeWidth(3 * dp);
-        stroke.setColor(text);
-        stroke.setAlpha(Math.round(255 * (1 - t)));
-        canvas.drawCircle(cx, cy, r - (1.5f * dp) * t, stroke);
+        rect.set(wLeft, top, wRight, top + barH);
         dashed.setAlpha(Math.round(255 * t));
-        canvas.drawCircle(cx, cy, r + 2 * dp, dashed);
+        canvas.drawRoundRect(rect, barH / 2, barH / 2, dashed);
+        if (t < 1) {
+            int save = canvas.saveLayerAlpha(rect, Math.round(255 * (1 - t)));
+            fill.setColor(text);
+            canvas.drawRoundRect(rect, barH / 2, barH / 2, fill);
+            stroke.setColor(bg);
+            stroke.setStrokeWidth(2.5f * dp);
+            float lx = wLeft + 20 * dp;
+            canvas.drawCircle(lx, cy, 7 * dp, stroke);
+            canvas.drawText("Alexa", wLeft + 34 * dp, cy - (word.descent() + word.ascent()) / 2, word);
+            // Mic: capsule, cradle and stem.
+            float mx = wRight - 17 * dp;
+            stroke.setStrokeWidth(1.5f * dp);
+            rect.set(mx - 2.5f * dp, cy - 8 * dp, mx + 2.5f * dp, cy + 1 * dp);
+            canvas.drawRoundRect(rect, 2.5f * dp, 2.5f * dp, stroke);
+            rect.set(mx - 5 * dp, cy - 6 * dp, mx + 5 * dp, cy + 4 * dp);
+            canvas.drawArc(rect, 0, 180, false, stroke);
+            canvas.drawLine(mx, cy + 4 * dp, mx, cy + 7 * dp, stroke);
+            canvas.restoreToCount(save);
+        }
 
         // Numbered marker, as in the figures on minnallab.com.
+        float cx = (wLeft + wRight) / 2;
         float my = top - 22 * dp;
         stroke.setStrokeWidth(1 * dp);
         stroke.setColor(accent);
         stroke.setAlpha(255);
-        canvas.drawLine(cx, my + 9 * dp, cx, cy - r - 5 * dp, stroke);
+        canvas.drawLine(cx, my + 9 * dp, cx, top - 5 * dp, stroke);
         fill.setColor(halo);
         canvas.drawCircle(cx, my, 13 * dp, fill);
         fill.setColor(accent);
