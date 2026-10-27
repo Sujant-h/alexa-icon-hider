@@ -22,9 +22,11 @@
     <string name="toggle_summary">Automatically after every boot and reset</string>
 
     <string name="callout_paused_title">Loop guard triggered</string>
-    <string name="callout_paused_text">The value was reset %1$d times in %2$d s, last at %3$tT, for example by the enabled Alexa app. When you switch back on, the counter starts over.</string>
+    <string name="callout_paused_text">The value was reset %1$d times within %2$d s, last at %3$tT, for example by the enabled Alexa app. When you switch back on, the counter starts over.</string>
     <string name="callout_setup_title">Run once on a computer</string>
     <string name="callout_setup_text">Connect the tablet via USB or wireless debugging and run this command. Then reopen the app.</string>
+    <string name="callout_exempt_title">Keep running when unused</string>
+    <string name="callout_exempt_text">Android pauses apps that are not opened for a few months. After the next restart the icon would be back. This command exempts the app from that and from battery limits. Then reopen the app.</string>
     <string name="copy">Copy</string>
     <string name="copied">Copied</string>
 
@@ -40,6 +42,8 @@
     <string name="row_permission_key" translatable="false">WRITE_SECURE_SETTINGS</string>
     <string name="row_trigger">Change trigger</string>
     <string name="row_trigger_key">JobScheduler · Content URI</string>
+    <string name="row_exempt">Unused-app exemption</string>
+    <string name="row_exempt_key" translatable="false">AUTO_REVOKE · Doze</string>
     <string name="granted">granted</string>
     <string name="missing">missing</string>
     <string name="active">active</string>
@@ -76,7 +80,7 @@
     <string name="channel_loop">Loop guard</string>
     <string name="notify_paused_title">Alexa Icon Hider: paused</string>
     <string name="notify_paused_text">The value keeps getting reset.</string>
-    <string name="notify_paused_big">The value was reset %1$d times in %2$d s, for example by the enabled Alexa app. The app stops writing until you open it and turn the switch back on.</string>
+    <string name="notify_paused_big">The value was reset %1$d times within %2$d s, for example by the enabled Alexa app. The app stops writing until you open it and turn the switch back on.</string>
     <string name="channel_permission">Permission</string>
     <string name="notify_permission_title">Alexa Icon Hider: permission missing</string>
     <string name="notify_permission_text">Run once via ADB:</string>

@@ -7,9 +7,11 @@
             <size android:width="48dp" android:height="24dp" />
         </shape>
     </item>
+    <!-- Outlined, so the off switch still shows its edge against the card. -->
     <item>
         <shape>
-            <solid android:color="@color/line_strong" />
+            <solid android:color="@color/line" />
+            <stroke android:width="2dp" android:color="@color/subtle" />
             <corners android:radius="12dp" />
             <size android:width="48dp" android:height="24dp" />
         </shape>

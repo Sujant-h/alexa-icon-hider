@@ -19,9 +19,11 @@
     <string name="toggle_summary">Automatisch nach jedem Boot und Reset</string>
 
     <string name="callout_paused_title">Schleifenschutz hat ausgelöst</string>
-    <string name="callout_paused_text">Der Wert wurde %1$d-mal in %2$d s zurückgesetzt, zuletzt um %3$tT, zum Beispiel durch die aktivierte Alexa-App. Wenn du wieder einschaltest, beginnt der Zähler von vorn.</string>
+    <string name="callout_paused_text">Der Wert wurde %1$d-mal innerhalb von %2$d s zurückgesetzt, zuletzt um %3$tT, zum Beispiel durch die aktivierte Alexa-App. Wenn du wieder einschaltest, beginnt der Zähler von vorn.</string>
     <string name="callout_setup_title">Einmalig am Computer ausführen</string>
     <string name="callout_setup_text">Tablet per USB- oder WLAN-Debugging verbinden und diesen Befehl ausführen. Danach die App neu öffnen.</string>
+    <string name="callout_exempt_title">Auch ungenutzt weiterlaufen</string>
+    <string name="callout_exempt_text">Android pausiert Apps, die einige Monate nicht geöffnet werden. Nach dem nächsten Neustart wäre das Symbol dann wieder da. Dieser Befehl nimmt die App davon und von Akku-Beschränkungen aus. Danach die App neu öffnen.</string>
     <string name="copy">Kopieren</string>
     <string name="copied">Kopiert</string>
 
@@ -35,6 +37,7 @@
     <string name="row_permission">Berechtigung</string>
     <string name="row_trigger">Änderungs-Trigger</string>
     <string name="row_trigger_key">JobScheduler · Content-URI</string>
+    <string name="row_exempt">Ausnahme für ungenutzte Apps</string>
     <string name="granted">erteilt</string>
     <string name="missing">fehlt</string>
     <string name="active">aktiv</string>
@@ -68,7 +71,7 @@
     <string name="channel_loop">Schleifenschutz</string>
     <string name="notify_paused_title">Alexa Icon Hider: pausiert</string>
     <string name="notify_paused_text">Der Wert wird ständig zurückgesetzt.</string>
-    <string name="notify_paused_big">Der Wert wurde %1$d-mal in %2$d s zurückgesetzt, zum Beispiel durch die aktivierte Alexa-App. Die App schreibt nicht mehr, bis du sie öffnest und den Schalter wieder einschaltest.</string>
+    <string name="notify_paused_big">Der Wert wurde %1$d-mal innerhalb von %2$d s zurückgesetzt, zum Beispiel durch die aktivierte Alexa-App. Die App schreibt nicht mehr, bis du sie öffnest und den Schalter wieder einschaltest.</string>
     <string name="channel_permission">Berechtigung</string>
     <string name="notify_permission_title">Alexa Icon Hider: Berechtigung fehlt</string>
     <string name="notify_permission_text">Einmalig per ADB ausführen:</string>

@@ -1,6 +1,6 @@
 # Alexa Icon Hider
 
-Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton`) in der Taskleiste des Fire Launchers dauerhaft aus. Root ist nicht nötig, und MacroDroid wird damit überflüssig. Die APK ist rund 45 KB groß und kommt ohne AndroidX und ohne Bibliotheken aus. Sie läuft ohne Dienst, ohne Polling und ohne Wakelocks.
+Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton`) in der Taskleiste des Fire Launchers dauerhaft aus. Root ist nicht nötig, und MacroDroid wird damit überflüssig. Die APK ist rund 57 KB groß und kommt ohne AndroidX und ohne Bibliotheken aus. Sie läuft ohne Dienst, ohne Polling und ohne Wakelocks.
 
 ## Kompatibilität
 
@@ -20,7 +20,7 @@ SystemUI (`com.amazon.wm.shell.alexa`) setzt den Wert bei jedem Boot **zweimal**
 
 Wegen des zweiten Resets hat ein einmaliges Setzen direkt nach dem Boot nicht gereicht, und MacroDroid brauchte die Wartezeit von 60 s. Die App setzt den Wert deshalb an zwei Stellen:
 
-- **`BootReceiver`** (`directBootAware`): bei `LOCKED_BOOT_COMPLETED`, `BOOT_COMPLETED` und `MY_PACKAGE_REPLACED`. Er schreibt nur, wenn der Wert abweicht.
+- **`BootReceiver`** (`directBootAware`): bei `LOCKED_BOOT_COMPLETED`, `BOOT_COMPLETED` und `MY_PACKAGE_REPLACED`. Er schreibt nur, wenn der Wert abweicht. Explizite Broadcasts mit anderen Aktionen ignoriert er.
 - **`ResetJob`**: ein JobScheduler-Job, der nur auslöst, wenn sich `content://settings/secure/alexa_app_in_foreground` ändert. Er setzt den Wert wieder auf 1 und plant sich neu. Beobachtet wird die Setting vom System, die App läuft also nur bei einer Änderung. Solche Jobs dürfen keinen Neustart überleben, deshalb plant der `BootReceiver` ihn nach jedem Boot neu.
 
 Den Launcher stoppt die App nicht, das ist auch nicht nötig.
@@ -36,23 +36,23 @@ Der Schleifenschutz greift, wenn ein anderer Prozess den Wert ständig zurückse
 Die signierte APK liegt bei den Releases als `alexa-icon-hider-<version>.apk`, daneben die `.sha256`-Datei. Die SHA-256-Prüfsumme jeder Version steht auch im [CHANGELOG](CHANGELOG.md).
 
 ```bash
-sha256sum alexa-icon-hider-1.4.apk
+sha256sum alexa-icon-hider-1.5.apk
 ```
 
-Unter Windows geht das mit `certutil -hashfile alexa-icon-hider-1.4.apk SHA256`. Alle Versionen sind mit demselben Schlüssel signiert. Updates installieren sich nur, wenn der Schlüssel übereinstimmt. Fingerabdruck des Signaturzertifikats (`CN=minnallab`):
+Unter Windows geht das mit `certutil -hashfile alexa-icon-hider-1.5.apk SHA256`. Alle Versionen sind mit demselben Schlüssel signiert. Updates installieren sich nur, wenn der Schlüssel übereinstimmt. Fingerabdruck des Signaturzertifikats (`CN=minnallab`):
 
 ```
 SHA-256: 24b85f093c4ddda288d8be50cd7484a7cbc04477fcfc2cd4db19a2ab5f21d33e
 ```
 
-Prüfen lässt er sich mit `apksigner verify --print-certs alexa-icon-hider-1.4.apk` aus den Android Build-Tools.
+Prüfen lässt er sich mit `apksigner verify --print-certs alexa-icon-hider-1.5.apk` aus den Android Build-Tools.
 
 ## Installation
 
 Voraussetzung: `adb` mit USB- oder WLAN-Debugging. Auf dem Alexa Tablet 12 Pro ist dein Nutzer die 10, das zeigt `adb shell am get-current-user`. Auf anderen Geräten ersetzt du `10` in allen Befehlen durch diese Zahl.
 
 ```bash
-adb install --user 10 alexa-icon-hider-1.4.apk
+adb install --user 10 alexa-icon-hider-1.5.apk
 ```
 
 ```bash
@@ -63,7 +63,15 @@ adb shell pm grant --user 10 com.minnallab.alexaiconhider android.permission.WRI
 adb shell pm grant --user 10 com.minnallab.alexaiconhider android.permission.POST_NOTIFICATIONS
 ```
 
-Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb shell am start --user 10 -n com.minnallab.alexaiconhider/.MainActivity`. Eine frisch installierte App ist im Zustand „stopped“ (`stopped=true notLaunched=true`) und erhält bis zum ersten Start keine Boot-Broadcasts. Die App zeigt den Ein/Aus-Schalter, den Status und, aufgeklappt, bis zu 20 Läufe seit dem letzten Neustart. Nach einem Neustart beginnt der Verlauf leer. Das Öffnen der App steht nur im Verlauf, wenn sie dabei den Wert setzen musste. Fehlt `WRITE_SECURE_SETTINGS`, zeigt sie den `pm grant`-Befehl mit der richtigen Nutzernummer zum Kopieren an. Ein MacroDroid-Makro für das Alexa-Symbol kannst du danach löschen.
+Weil die App nach der Einrichtung nie wieder geöffnet wird, nimmst du sie außerdem von der Pausierung ungenutzter Apps und von App Standby aus:
+
+```bash
+adb shell "cmd appops set --user 10 com.minnallab.alexaiconhider AUTO_REVOKE_PERMISSIONS_IF_UNUSED ignore && dumpsys deviceidle whitelist +com.minnallab.alexaiconhider"
+```
+
+Ohne den ersten Teil versetzt Android die App nach einigen Monaten ohne Öffnen in den Ruhezustand (App Hibernation). Sie ist dann gestoppt, erhält keine Boot-Broadcasts mehr, und das Symbol ist nach dem nächsten Neustart wieder da, ohne Hinweis. Außerdem entzieht Android dabei `POST_NOTIFICATIONS`. Der zweite Teil setzt die App auf die Akku-Ausnahmeliste (Bucket `EXEMPTED`), damit der Änderungs-Trigger auch in einem niedrigen Standby-Bucket nicht zurückgehalten wird. Fehlt eins davon, zeigt die App den Befehl mit der richtigen Nutzernummer zum Kopieren an.
+
+Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb shell am start --user 10 -n com.minnallab.alexaiconhider/.MainActivity`. Eine frisch installierte App ist im Zustand „stopped“ (`stopped=true notLaunched=true`) und erhält bis zum ersten Start keine Boot-Broadcasts. Die App zeigt den Ein/Aus-Schalter, den Status und, aufgeklappt, bis zu 20 Läufe seit dem letzten Neustart. Nach einem Neustart beginnt der Verlauf leer. Das Öffnen der App steht nur im Verlauf, wenn sie dabei den Wert setzen musste. Der Trigger-Lauf, den das eigene Schreiben der 1 auslöst, steht nicht darin, so belegt jedes Zurücksetzen nur eine Zeile. Fehlt `WRITE_SECURE_SETTINGS`, zeigt sie den `pm grant`-Befehl mit der richtigen Nutzernummer zum Kopieren an. Ein MacroDroid-Makro für das Alexa-Symbol kannst du danach löschen.
 
 **Berechtigungen:**
 
@@ -78,8 +86,10 @@ Zum vorübergehenden Abschalten reicht der Schalter in der App. Zum Entfernen:
 Erst deinstallieren, dann die Setting löschen. In umgekehrter Reihenfolge würde der Job den gelöschten Wert sofort wieder setzen.
 
 ```bash
-adb shell "pm uninstall --user 10 com.minnallab.alexaiconhider && settings delete --user 10 secure alexa_app_in_foreground"
+adb shell "pm uninstall --user 10 com.minnallab.alexaiconhider && settings delete --user 10 secure alexa_app_in_foreground; dumpsys deviceidle whitelist -com.minnallab.alexaiconhider"
 ```
+
+Der letzte Teil entfernt die App von der Akku-Ausnahmeliste, falls Android das nicht schon beim Deinstallieren erledigt hat.
 
 Das Symbol erscheint danach sofort wieder.
 
@@ -163,10 +173,25 @@ Zeiten in Sekunden seit dem Boot. Die Systemereignisse stammen aus `logcat -b al
 | `WRITE_SECURE_SETTINGS` fehlt | kein Absturz, genau eine Benachrichtigung mit dem `pm grant`-Befehl. Nach erneutem Erteilen und Öffnen ist sie weg und der Wert wieder 1 |
 | Benachrichtigungen erst nachträglich erlaubt (1.4) | Bei verbotenen Benachrichtigungen und fehlender Berechtigung erscheint nichts. Nach dem Erlauben erscheint der Hinweis beim nächsten Zurücksetzen, mit `--user 10` im Befehl |
 | App mehrmals öffnen (1.4) | Bei Wert 1 kein neuer Eintrag im Verlauf, Boot- und Trigger-Läufe bleiben erhalten |
-| APK-Größe | 45.192 Bytes (Release 1.4, R8, v2-signiert). 1.3 hatte 15.476 Bytes, der Zuwachs kommt vom neuen Design und App-Symbol |
-| Standby-Bucket | 10 (ACTIVE) direkt nach den Tests |
+| APK-Größe | 56.565 Bytes (lokaler Release-Build 1.5, R8, v2-signiert). 1.4 hatte 45.192 Bytes, 1.3 hatte 15.476 Bytes |
+| Standby-Bucket | 10 (ACTIVE) direkt nach den Tests mit 1.4. Mit dem Ausnahme-Befehl 5 (EXEMPTED) |
 
-Noch nicht über mehrere Tage beobachtet: ob der Content-Trigger-Job in einem niedrigeren Standby-Bucket verzögert wird, und ob spätere Entsperrungen wirklich nicht mehr zurücksetzen (laut Code nicht). Beides zeigt der Verlauf in der App.
+### 1.5 im Emulator (API 37, Nutzer 0)
+
+Die Änderungen in 1.5 sind bisher nur im Emulator getestet, nicht auf dem Tablet. Den Reset durch SystemUI gibt es dort nicht.
+
+| Test | Ergebnis |
+|---|---|
+| Update 1.4 → 1.5 (`install -r`) | `MY_PACKAGE_REPLACED` kommt an, Wert 0→1, Trigger geplant |
+| `settings put … 0` von Hand | nach 0,55 s bzw. 0,56 s wieder 1, je Zurücksetzen eine Zeile im Verlauf statt zwei |
+| `am broadcast -n …/.BootReceiver` mit fremder Aktion und ohne Aktion | ignoriert, kein Eintrag im Verlauf |
+| Ausnahme fehlt | Zeile „Ausnahme für ungenutzte Apps“ zeigt „fehlt“, Hinweis mit Befehl erscheint. Nach dem angezeigten Befehl und erneutem Öffnen „erteilt“, Hinweis weg, Bucket 5 |
+| Aus, Wert trotzdem 1 | Überschrift „ausgeblendet“, passend zur Skizze (in 1.4 stand dort „sichtbar“) |
+| Schleifenschutz | Nach dem 10. Schreiben ausgeschaltet, Wert bleibt 0, Benachrichtigung erscheint |
+| Neustart | `LOCKED_BOOT_COMPLETED` und `BOOT_COMPLETED` im Verlauf, Wert 1, Trigger geplant, Bucket 5 |
+| Deutsch, dunkles Theme | „Seit Boot“ mit Dezimalkomma, Schalter in beiden Zuständen und Themes deutlich erkennbar |
+
+Noch nicht über mehrere Tage beobachtet: ob spätere Entsperrungen wirklich nicht mehr zurücksetzen (laut Code nicht). Das zeigt der Verlauf in der App.
 
 Ein **Content-Trigger** wartet ohne `setTriggerContentUpdateDelay(0)` etwa 10 s auf Ruhe, bevor der Job startet (gemessen). Mit `0` greift die Untergrenze des Systems von etwa 0,5 s.
 

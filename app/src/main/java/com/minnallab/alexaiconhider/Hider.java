@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.PowerManager;
 import android.os.Process;
 import android.os.SystemClock;
 import android.provider.Settings;
@@ -56,8 +57,30 @@ final class Hider {
 
     /** The pm grant command for the user we run as (10 on the Alexa Tablet 12 Pro). */
     static String grantCommand() {
-        return "adb shell pm grant --user " + Process.myUid() / PER_USER_RANGE
+        return "adb shell pm grant --user " + userId()
                 + " com.minnallab.alexaiconhider android.permission.WRITE_SECURE_SETTINGS";
+    }
+
+    /** Lifts both limits checked by isExempt(); the allowlist is per device, not per user. */
+    static String exemptCommand() {
+        return "adb shell \"cmd appops set --user " + userId()
+                + " com.minnallab.alexaiconhider AUTO_REVOKE_PERMISSIONS_IF_UNUSED ignore"
+                + " && dumpsys deviceidle whitelist +com.minnallab.alexaiconhider\"";
+    }
+
+    private static int userId() {
+        return Process.myUid() / PER_USER_RANGE;
+    }
+
+    /**
+     * The app is set up once and then never opened. Without this, Android hibernates it after
+     * a few months unused, which stops it, so boot broadcasts no longer arrive and the icon
+     * comes back; App Standby can also hold back the trigger job.
+     */
+    static boolean isExempt(Context c) {
+        return c.getPackageManager().isAutoRevokeWhitelisted()
+                && c.getSystemService(PowerManager.class)
+                        .isIgnoringBatteryOptimizations(c.getPackageName());
     }
 
     static boolean hasWritePermission(Context c) {
@@ -72,8 +95,8 @@ final class Hider {
     /**
      * Idempotent: writes only if the value differs, then (re)arms the change trigger.
      * While switched off it neither writes nor arms the trigger, it only records the run.
-     * Opening the app is recorded only when it wrote, so it does not push boot runs out
-     * of the history.
+     * Opening the app is recorded only when it wrote, and the trigger is not recorded when
+     * it only saw our own write of 1, so neither pushes boot runs out of the history.
      */
     static void apply(Context c, String reason) {
         int before = currentValue(c);
@@ -92,9 +115,9 @@ final class Hider {
             on = false;
             suffix = "  paused";
         }
-        if (wrote || !"activity".equals(reason)) {
-            log(c, now, reason, before, wrote ? "→1" + suffix : suffix);
-        }
+        boolean noop = !wrote && ("activity".equals(reason)
+                || "trigger".equals(reason) && before == 1);
+        if (!noop) log(c, now, reason, before, wrote ? "→1" + suffix : suffix);
         if (on) scheduleTrigger(c);
     }
 

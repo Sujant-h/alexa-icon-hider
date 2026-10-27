@@ -1,14 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 24dp slot with an 18dp knob, so the knob sits 3dp inside the track. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:width="24dp" android:height="24dp">
-        <shape android:shape="oval">
-            <solid android:color="@android:color/transparent" />
-        </shape>
+<!-- 24dp slot so the knob sits inside the track. On: 18dp knob in on_accent. Off: a smaller
+     knob in subtle, which keeps 3:1 against the outlined track in both themes. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <layer-list>
+            <item android:width="24dp" android:height="24dp">
+                <shape android:shape="oval">
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+            <item android:width="18dp" android:height="18dp" android:gravity="center">
+                <shape android:shape="oval">
+                    <solid android:color="@color/on_accent" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
-    <item android:width="18dp" android:height="18dp" android:gravity="center">
-        <shape android:shape="oval">
-            <solid android:color="@color/thumb" />
-        </shape>
+    <item>
+        <layer-list>
+            <item android:width="24dp" android:height="24dp">
+                <shape android:shape="oval">
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+            <item android:width="14dp" android:height="14dp" android:gravity="center">
+                <shape android:shape="oval">
+                    <solid android:color="@color/subtle" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
-</layer-list>
+</selector>

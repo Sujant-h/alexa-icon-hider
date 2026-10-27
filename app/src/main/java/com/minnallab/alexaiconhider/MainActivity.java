@@ -26,6 +26,8 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import java.text.DecimalFormatSymbols;
+
 /**
  * Status screen with the on/off switch. Opening it once after install also takes the app
  * out of the "stopped" state, which Android requires before boot broadcasts are delivered.
@@ -37,7 +39,8 @@ public final class MainActivity extends Activity {
 
     private Switch toggle;
     private TaskbarFigure figure;
-    private TextView state, headline, summary, legend, calloutTitle, calloutText, historyCount;
+    private TextView state, headline, summary, legend, calloutTitle, calloutText, command,
+            historyCount;
     private View stateDot, callout, commandRow, historyToggle, historyTable, historyChevron;
     private Button copy;
     private LinearLayout history;
@@ -84,7 +87,7 @@ public final class MainActivity extends Activity {
             Hider.setEnabled(this, toggle.isChecked());
             showStatus();
         });
-        ((TextView) findViewById(R.id.command)).setText(Hider.grantCommand());
+        command = findViewById(R.id.command);
         copy.setOnClickListener(v -> copyCommand());
         ((TextView) findViewById(R.id.version)).setText("v" + versionName());
         addHistoryCells((LinearLayout) findViewById(R.id.history_header), R.style.Text_Eyebrow,
@@ -165,6 +168,9 @@ public final class MainActivity extends Activity {
         boolean on = Hider.isEnabled(this);
         boolean write = Hider.hasWritePermission(this);
         boolean trigger = Hider.isTriggerScheduled(this);
+        boolean exempt = Hider.isExempt(this);
+        // Only once it can write; the grant command comes first.
+        boolean exemptHint = on && write && !exempt;
         int value = Hider.currentValue(this);
         long pausedAt = Hider.pausedAt(this);
         int accent = getColor(R.color.accent);
@@ -181,7 +187,10 @@ public final class MainActivity extends Activity {
                     value == 1 ? R.string.headline_hidden : R.string.headline_visible,
                     R.string.summary_on);
         } else {
-            setState(R.string.state_off, subtle, R.string.headline_visible, R.string.summary_off);
+            // Off but still 1, e.g. without the permission to write 0: say what the taskbar shows.
+            setState(R.string.state_off, subtle,
+                    value == 1 ? R.string.headline_hidden : R.string.headline_visible,
+                    R.string.summary_off);
         }
 
         if (pausedAt != 0) {
@@ -191,9 +200,15 @@ public final class MainActivity extends Activity {
         } else if (!write) {
             calloutTitle.setText(R.string.callout_setup_title);
             calloutText.setText(R.string.callout_setup_text);
+            command.setText(Hider.grantCommand());
+        } else if (exemptHint) {
+            calloutTitle.setText(R.string.callout_exempt_title);
+            calloutText.setText(R.string.callout_exempt_text);
+            command.setText(Hider.exemptCommand());
         }
-        callout.setVisibility(pausedAt != 0 || !write ? View.VISIBLE : View.GONE);
-        commandRow.setVisibility(pausedAt == 0 && !write ? View.VISIBLE : View.GONE);
+        callout.setVisibility(pausedAt != 0 || !write || exemptHint ? View.VISIBLE : View.GONE);
+        commandRow.setVisibility(pausedAt == 0 && (!write || exemptHint)
+                ? View.VISIBLE : View.GONE);
 
         String figureState = getString(value == 1
                 ? R.string.figure_hidden : R.string.figure_visible);
@@ -213,6 +228,9 @@ public final class MainActivity extends Activity {
         setRow(R.id.trigger_dot, R.id.trigger_value,
                 getString(trigger ? R.string.active : R.string.inactive),
                 trigger ? accent : on ? warn : subtle);
+        setRow(R.id.exempt_dot, R.id.exempt_value,
+                getString(exempt ? R.string.granted : R.string.missing),
+                exempt ? accent : on ? warn : subtle);
         showHistory();
     }
 
@@ -251,6 +269,9 @@ public final class MainActivity extends Activity {
         historyCount.setText(String.valueOf(lines.length));
         historyToggle.setContentDescription(getString(R.string.history_title) + ", " + count);
         findViewById(R.id.history_empty).setVisibility(all.isEmpty() ? View.VISIBLE : View.GONE);
+        // Stored with Locale.ROOT so it parses back; shown with the screen's decimal separator.
+        char decimal = DecimalFormatSymbols.getInstance(
+                getResources().getConfiguration().getLocales().get(0)).getDecimalSeparator();
         for (String line : lines) {
             LinearLayout row = new LinearLayout(this, null, 0, R.style.Row);
             row.setMinimumHeight(0);
@@ -260,7 +281,8 @@ public final class MainActivity extends Activity {
                 addHistoryCells(row, R.style.Text_Mono, line);
             } else {
                 String reason = reasonLabel(f[2]) + (f.length > 4 ? " · " + flagLabel(f[4]) : "");
-                addHistoryCells(row, R.style.Text_Mono, f[0], f[1], reason, f[3]);
+                addHistoryCells(row, R.style.Text_Mono, f[0], f[1].replace('.', decimal),
+                        reason, f[3]);
                 TextView uptime = (TextView) row.getChildAt(1);
                 uptime.setTextColor(getColor(R.color.subtle));
                 TextView why = (TextView) row.getChildAt(2);
@@ -308,7 +330,7 @@ public final class MainActivity extends Activity {
     /** Android 13+ confirms the copy itself, so the button only changes its label. */
     private void copyCommand() {
         getSystemService(ClipboardManager.class)
-                .setPrimaryClip(ClipData.newPlainText("adb", Hider.grantCommand()));
+                .setPrimaryClip(ClipData.newPlainText("adb", command.getText()));
         copy.setText(R.string.copied);
         copy.removeCallbacks(resetCopy);
         copy.postDelayed(resetCopy, 2000);

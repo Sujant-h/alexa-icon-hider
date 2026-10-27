@@ -1,8 +1,15 @@
 # Changelog
 
-## Unveröffentlicht
+## 1.5 (versionCode 6), 27.10.2026
 
+- Die App ist jetzt auf Englisch, Deutsch bleibt als Übersetzung. Die Sprache folgt dem System oder der Einstellung unter Apps > Sprache.
+- Neue Zeile „Ausnahme für ungenutzte Apps“. Fehlt die Ausnahme von App Hibernation und App Standby, zeigt die App den Befehl zum Kopieren. Ohne sie würde Android die App nach einigen Monaten ohne Öffnen stoppen, und das Symbol käme nach dem nächsten Neustart zurück.
 - Der Verlauf zeigt nur noch die Läufe seit dem letzten Neustart und ist eingeklappt, bis man ihn antippt. Ältere Läufe erkennt die App am Boot-Zähler des Systems und verwirft sie.
+- Der Trigger-Lauf, den das eigene Schreiben auslöst, steht nicht mehr im Verlauf. Jedes Zurücksetzen belegt eine Zeile statt zwei.
+- Bei ausgeschalteter App passt die Überschrift jetzt zum tatsächlichen Wert. Bisher stand dort auch bei Wert 1 „sichtbar“.
+- Der `BootReceiver` ignoriert Broadcasts mit fremden oder fehlenden Aktionen, statt sie zu verarbeiten und in den Verlauf zu schreiben.
+- Der Schalter ist in beiden Zuständen und Themes deutlicher: ausgeschaltet mit Rand und grauem Knopf, eingeschaltet mit dunklem Knopf im dunklen Theme.
+- „Seit Boot“ im Verlauf nutzt das Dezimalzeichen der Sprache. Der Schleifenschutz-Text sagt „innerhalb von 60 s“.
 - Oben links steht jetzt das App-Symbol statt des Minnal-Lab-Zeichens. Das Zeichen steht in einer neuen Fußzeile.
 
 ## 1.4 (versionCode 5), 27.10.2026
