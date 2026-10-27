@@ -21,11 +21,19 @@
     <string name="callout_paused_title">Schleifenschutz hat ausgelöst</string>
     <string name="callout_paused_text">Der Wert wurde %1$d-mal innerhalb von %2$d s zurückgesetzt, zuletzt um %3$tT, zum Beispiel durch die aktivierte Alexa-App. Wenn du wieder einschaltest, beginnt der Zähler von vorn.</string>
     <string name="callout_setup_title">Einmalig am Computer ausführen</string>
-    <string name="callout_setup_text">Tablet per USB- oder WLAN-Debugging verbinden und diesen Befehl ausführen. Danach die App neu öffnen.</string>
+    <string name="callout_setup_text">Tablet per USB- oder WLAN-Debugging verbinden und diesen Befehl ausführen.</string>
     <string name="callout_exempt_title">Auch ungenutzt weiterlaufen</string>
-    <string name="callout_exempt_text">Android pausiert Apps, die einige Monate nicht geöffnet werden. Nach dem nächsten Neustart wäre das Symbol dann wieder da. Dieser Befehl nimmt die App davon und von Akku-Beschränkungen aus. Danach die App neu öffnen.</string>
+    <string name="callout_exempt_text">Android pausiert Apps, die einige Monate nicht geöffnet werden. Nach dem nächsten Neustart wäre das Symbol dann wieder da. Dieser Befehl nimmt die App davon und von Akku-Beschränkungen aus.</string>
     <string name="copy">Kopieren</string>
     <string name="copied">Kopiert</string>
+    <string name="waiting">Warte auf den Befehl …</string>
+
+    <string name="confirm_granted_title">Berechtigung erteilt</string>
+    <string name="confirm_exempt_title">Ausnahme aktiv</string>
+    <string name="confirm_done_title">Einrichtung abgeschlossen</string>
+    <string name="confirm_next">Das Alexa-Symbol ist jetzt ausgeblendet. Ein weiterer Befehl hält es ausgeblendet, auch wenn die App ungenutzt bleibt.</string>
+    <string name="confirm_done">Das Alexa-Symbol bleibt ausgeblendet, auch wenn die App nie wieder geöffnet wird. Du kannst das Tablet trennen.</string>
+    <string name="confirm_off">Schalte „Alexa-Symbol ausblenden“ ein, damit das Symbol verschwindet.</string>
 
     <string name="figure_caption">Fig. 01 · Taskleiste</string>
     <string name="figure_hidden">ausgeblendet</string>
@@ -65,6 +73,7 @@
     <string name="reason_locked_boot">Boot, gesperrt</string>
     <string name="reason_boot">Boot</string>
     <string name="reason_update">Update</string>
+    <string name="reason_grant">Berechtigung erteilt</string>
     <string name="flag_off">aus</string>
     <string name="flag_paused">pausiert</string>
 

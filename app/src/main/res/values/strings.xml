@@ -24,11 +24,19 @@
     <string name="callout_paused_title">Loop guard triggered</string>
     <string name="callout_paused_text">The value was reset %1$d times within %2$d s, last at %3$tT, for example by the enabled Alexa app. When you switch back on, the counter starts over.</string>
     <string name="callout_setup_title">Run once on a computer</string>
-    <string name="callout_setup_text">Connect the tablet via USB or wireless debugging and run this command. Then reopen the app.</string>
+    <string name="callout_setup_text">Connect the tablet via USB or wireless debugging and run this command.</string>
     <string name="callout_exempt_title">Keep running when unused</string>
-    <string name="callout_exempt_text">Android pauses apps that are not opened for a few months. After the next restart the icon would be back. This command exempts the app from that and from battery limits. Then reopen the app.</string>
+    <string name="callout_exempt_text">Android pauses apps that are not opened for a few months. After the next restart the icon would be back. This command exempts the app from that and from battery limits.</string>
     <string name="copy">Copy</string>
     <string name="copied">Copied</string>
+    <string name="waiting">Waiting for the command…</string>
+
+    <string name="confirm_granted_title">Permission granted</string>
+    <string name="confirm_exempt_title">Exemption active</string>
+    <string name="confirm_done_title">Setup complete</string>
+    <string name="confirm_next">The Alexa icon is hidden now. One more command keeps it hidden when the app goes unused.</string>
+    <string name="confirm_done">The Alexa icon stays hidden, even if the app is never opened again. You can disconnect the tablet.</string>
+    <string name="confirm_off">Turn on “Hide Alexa icon” above to hide the icon.</string>
 
     <string name="figure_caption">Fig. 01 · Taskbar</string>
     <string name="figure_hidden">hidden</string>
@@ -71,6 +79,7 @@
     <string name="reason_locked_boot">Boot, locked</string>
     <string name="reason_boot">Boot</string>
     <string name="reason_update">Update</string>
+    <string name="reason_grant">Permission granted</string>
 
     <string name="footer_brand" translatable="false">Minnal Lab</string>
     <string name="footer_site" translatable="false">minnallab.com</string>

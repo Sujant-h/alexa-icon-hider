@@ -1,6 +1,8 @@
 package com.minnallab.alexaiconhider;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -19,6 +21,7 @@ import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.TypefaceSpan;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Button;
@@ -36,17 +39,24 @@ public final class MainActivity extends Activity {
     // Column weights of the history table, shared by header and rows.
     private static final float[] COLUMNS = {1f, 1.1f, 1.9f, 0.6f};
     private static final String STATE_HISTORY_OPEN = "history_open";
+    private static final long WATCH_MS = 1000;
 
     private Switch toggle;
     private TaskbarFigure figure;
     private TextView state, headline, summary, legend, calloutTitle, calloutText, command,
-            historyCount;
-    private View stateDot, callout, commandRow, historyToggle, historyTable, historyChevron;
+            historyCount, confirmTitle, confirmText;
+    private View stateDot, callout, commandRow, waiting, confirm, historyToggle, historyTable,
+            historyChevron;
+    private ObjectAnimator pulse;
     private Button copy;
     private LinearLayout history;
     private boolean shown;
     // The history is for diagnosis, so it starts closed each time the screen is opened.
     private boolean historyOpen;
+    private boolean resumed;
+    // As last shown, to tell a command that just worked from one that was never needed.
+    // Null until the first showStatus(), so opening the screen confirms nothing.
+    private Boolean shownWrite, shownExempt;
 
     // Keeps the screen current while it is open, e.g. when the loop guard switches off.
     // ResetJob also runs on the main thread, so its run is recorded before this is called.
@@ -54,6 +64,22 @@ public final class MainActivity extends Activity {
             new Handler(Looper.getMainLooper())) {
         @Override
         public void onChange(boolean selfChange) {
+            showStatus();
+        }
+    };
+
+    // Android tells an app nothing when adb grants it a permission or an exemption, so while
+    // a command is shown, and only while the screen is in front, it checks once a second.
+    private final Runnable watch = new Runnable() {
+        @Override
+        public void run() {
+            boolean write = Hider.hasWritePermission(MainActivity.this);
+            if (write == shownWrite && Hider.isExempt(MainActivity.this) == shownExempt) {
+                callout.postDelayed(this, WATCH_MS);
+                return;
+            }
+            // Hide the icon now, not at the next reset; the observer then refreshes once more.
+            if (write && !shownWrite) Hider.apply(MainActivity.this, "grant");
             showStatus();
         }
     };
@@ -73,6 +99,14 @@ public final class MainActivity extends Activity {
         calloutTitle = findViewById(R.id.callout_title);
         calloutText = findViewById(R.id.callout_text);
         commandRow = findViewById(R.id.command_row);
+        waiting = findViewById(R.id.waiting);
+        confirm = findViewById(R.id.confirm);
+        confirmTitle = findViewById(R.id.confirm_title);
+        confirmText = findViewById(R.id.confirm_text);
+        pulse = ObjectAnimator.ofFloat(findViewById(R.id.waiting_dot), View.ALPHA, 1f, 0.2f)
+                .setDuration(900);
+        pulse.setRepeatCount(ValueAnimator.INFINITE);
+        pulse.setRepeatMode(ValueAnimator.REVERSE);
         copy = findViewById(R.id.copy);
         history = findViewById(R.id.history);
         historyToggle = findViewById(R.id.history_toggle);
@@ -114,6 +148,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        resumed = true;
         Hider.apply(this, "activity");
         showStatus();
         getContentResolver().registerContentObserver(
@@ -123,7 +158,17 @@ public final class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        resumed = false;
         getContentResolver().unregisterContentObserver(observer);
+        callout.removeCallbacks(watch);
+        pulse.cancel();
+    }
+
+    /** The confirmation is news only once; whoever comes back sees the status above. */
+    @Override
+    protected void onStop() {
+        super.onStop();
+        confirm.setVisibility(View.GONE);
     }
 
     @Override
@@ -207,8 +252,26 @@ public final class MainActivity extends Activity {
             command.setText(Hider.exemptCommand());
         }
         callout.setVisibility(pausedAt != 0 || !write || exemptHint ? View.VISIBLE : View.GONE);
-        commandRow.setVisibility(pausedAt == 0 && (!write || exemptHint)
-                ? View.VISIBLE : View.GONE);
+        boolean waitForCommand = pausedAt == 0 && (!write || exemptHint);
+        commandRow.setVisibility(waitForCommand ? View.VISIBLE : View.GONE);
+        waiting.setVisibility(waitForCommand ? View.VISIBLE : View.GONE);
+        callout.removeCallbacks(watch);
+        if (waitForCommand && resumed) {
+            callout.postDelayed(watch, WATCH_MS);
+            if (!pulse.isStarted()) pulse.start();
+        } else {
+            pulse.cancel();
+        }
+
+        boolean granted = shownWrite != null && write && !shownWrite;
+        boolean exempted = shownExempt != null && exempt && !shownExempt;
+        shownWrite = write;
+        shownExempt = exempt;
+        if (!write || pausedAt != 0) {
+            confirm.setVisibility(View.GONE);
+        } else if (granted || exempted) {
+            showConfirmation(granted, on, exempt);
+        }
 
         String figureState = getString(value == 1
                 ? R.string.figure_hidden : R.string.figure_visible);
@@ -232,6 +295,24 @@ public final class MainActivity extends Activity {
                 getString(exempt ? R.string.granted : R.string.missing),
                 exempt ? accent : on ? warn : subtle);
         showHistory();
+    }
+
+    /** Says that the command worked and what, if anything, is left to do. */
+    private void showConfirmation(boolean granted, boolean on, boolean exempt) {
+        boolean done = on && exempt;
+        boolean appearing = confirm.getVisibility() != View.VISIBLE;
+        confirm.setVisibility(View.VISIBLE);
+        // Set after it is visible, so the live region announces the new text.
+        confirmTitle.setText(done ? R.string.confirm_done_title
+                : granted ? R.string.confirm_granted_title : R.string.confirm_exempt_title);
+        confirmText.setText(!on ? R.string.confirm_off
+                : done ? R.string.confirm_done : R.string.confirm_next);
+        confirm.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+        if (appearing) {
+            confirm.setAlpha(0f);
+            confirm.setTranslationY(-8 * getResources().getDisplayMetrics().density);
+            confirm.animate().alpha(1f).translationY(0).setDuration(250);
+        }
     }
 
     private void setState(int label, int color, int title, int text) {
@@ -315,6 +396,7 @@ public final class MainActivity extends Activity {
             case "LOCKED_BOOT_COMPLETED": return getString(R.string.reason_locked_boot);
             case "BOOT_COMPLETED": return getString(R.string.reason_boot);
             case "MY_PACKAGE_REPLACED": return getString(R.string.reason_update);
+            case "grant": return getString(R.string.reason_grant);
             default: return reason;
         }
     }
