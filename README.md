@@ -119,6 +119,8 @@ git tag -a v1.5 -m "1.5" && git push origin v1.5
 
 Der Workflow bricht ab, wenn der Tag nicht zu `versionName` passt oder im CHANGELOG kein Abschnitt `## 1.5 …` steht. Dann baut er ohne Gradle-Cache die signierte APK und prüft mit `apksigner`, dass sie mit dem oben genannten Zertifikat signiert ist. Mit jedem anderen Schlüssel bricht er ab. Danach legt er eine Build-Provenance-Attestation an und erstellt das GitHub-Release mit `alexa-icon-hider-<version>.apk`, der `.sha256`-Datei und dem CHANGELOG-Abschnitt als Text. Die Prüfsumme der in CI gebauten APK hängt er an. Sie gehört danach in den CHANGELOG.
 
+Eine Version mit Zusatz wie `1.5-beta.1` (Tag `v1.5-beta.1`) erscheint als Pre-release und wird nicht zu „Latest“. Der `versionCode` steigt mit jeder Beta. Die fertige Version bekommt einen höheren, damit sie sich über die Beta installiert.
+
 Die Herkunft einer heruntergeladenen APK lässt sich so prüfen:
 
 ```bash

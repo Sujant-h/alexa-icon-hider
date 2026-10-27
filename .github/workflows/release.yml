@@ -2,6 +2,7 @@ name: Release
 
 # Push a tag like v1.5 that matches versionName in app/build.gradle.kts. The workflow builds the
 # signed APK, checks it is signed with the published key, attests it and creates the GitHub release.
+# A tag like v1.5-beta.1 creates a prerelease.
 on:
   push:
     tags: ['v*']
@@ -117,8 +118,12 @@ jobs:
           APK: ${{ steps.apk.outputs.file }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
+          # A version with a suffix (1.5-beta.1, 1.6-rc.1) is a prerelease and never becomes "Latest".
+          prerelease=()
+          case "$VERSION" in *-*) prerelease=(--prerelease) ;; esac
           gh release create "$GITHUB_REF_NAME" "$APK" "$APK.sha256" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --title "$VERSION" \
-            --notes-file "$RUNNER_TEMP/notes.md"
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            "${prerelease[@]}"

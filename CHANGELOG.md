@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.5 (versionCode 6), 27.10.2026
+## 1.5-beta.1 (versionCode 6), 27.10.2026
+
+Beta: bisher nur im Emulator getestet, noch nicht auf dem Alexa Tablet 12 Pro. Die fertige 1.5 bekommt versionCode 7 und installiert sich über diese Beta.
 
 - Die App ist jetzt auf Englisch, Deutsch bleibt als Übersetzung. Die Sprache folgt dem System oder der Einstellung unter Apps > Sprache.
 - Neue Zeile „Ausnahme für ungenutzte Apps“. Fehlt die Ausnahme von App Hibernation und App Standby, zeigt die App den Befehl zum Kopieren. Ohne sie würde Android die App nach einigen Monaten ohne Öffnen stoppen, und das Symbol käme nach dem nächsten Neustart zurück.
