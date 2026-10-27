@@ -124,6 +124,48 @@
                     android:thumb="@drawable/switch_thumb"
                     android:track="@drawable/switch_track" />
 
+                <!-- Confirms a command run while the screen is open; announced, kept until it is left. -->
+                <LinearLayout
+                    android:id="@+id/confirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:accessibilityLiveRegion="polite"
+                    android:background="@drawable/card_ok"
+                    android:orientation="horizontal"
+                    android:padding="20dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/check" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/confirm_title"
+                            style="@style/Text.Label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/accent" />
+
+                        <TextView
+                            android:id="@+id/confirm_text"
+                            style="@style/Text.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
                 <LinearLayout
                     android:id="@+id/callout"
                     android:layout_width="match_parent"
@@ -180,6 +222,31 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:text="@string/copy" />
+                    </LinearLayout>
+
+                    <!-- Shown with the command: the screen notices the grant by itself. -->
+                    <LinearLayout
+                        android:id="@+id/waiting"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:id="@+id/waiting_dot"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:background="@drawable/dot"
+                            android:backgroundTint="@color/warn"
+                            android:importantForAccessibility="no" />
+
+                        <TextView
+                            style="@style/Text.Mono.Small"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="@string/waiting" />
                     </LinearLayout>
                 </LinearLayout>
 
