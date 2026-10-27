@@ -122,7 +122,7 @@ Der Workflow bricht ab, wenn der Tag nicht zu `versionName` passt oder im CHANGE
 Die Herkunft einer heruntergeladenen APK lässt sich so prüfen:
 
 ```bash
-gh attestation verify alexa-icon-hider-1.5.apk --repo <owner>/<repo>
+gh attestation verify alexa-icon-hider-1.5.apk --repo Sujant-h/alexa-icon-hider
 ```
 
 Einmalig einzurichten, unter Settings > Environments ein Environment `release` mit diesen Secrets:
