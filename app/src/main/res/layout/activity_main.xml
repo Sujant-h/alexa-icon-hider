@@ -23,7 +23,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:importantForAccessibility="no"
-                android:src="@drawable/logo" />
+                android:src="@drawable/app_mark" />
 
             <TextView
                 style="@style/Text.Title"
@@ -369,28 +369,15 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    style="@style/Text.Eyebrow"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="36dp"
-                    android:gravity="bottom"
-                    android:orientation="horizontal">
+                    android:accessibilityHeading="true"
+                    android:text="@string/section_history" />
 
-                    <TextView
-                        style="@style/Text.Eyebrow"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:accessibilityHeading="true"
-                        android:text="@string/section_history" />
-
-                    <TextView
-                        style="@style/Text.Mono.Small"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/history_hint" />
-                </LinearLayout>
-
+                <!-- Diagnostics, so closed by default; the summary row opens the table. -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -401,38 +388,137 @@
                     android:padding="1dp">
 
                     <LinearLayout
-                        android:id="@+id/history_header"
+                        android:id="@+id/history_toggle"
                         style="@style/Row"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@color/surface"
-                        android:minHeight="0dp"
-                        android:paddingTop="10dp"
-                        android:paddingBottom="10dp" />
+                        android:background="@drawable/row_pressable"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/line" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Text.Label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/history_title" />
+
+                            <TextView
+                                style="@style/Text.Mono.Small"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/history_hint" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/history_count"
+                            style="@style/Text.Mono"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                        <ImageView
+                            android:id="@+id/history_chevron"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginStart="10dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/chevron" />
+                    </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/history"
+                        android:id="@+id/history_table"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:divider="@drawable/hairline"
                         android:orientation="vertical"
-                        android:showDividers="middle" />
+                        android:visibility="gone">
 
-                    <TextView
-                        android:id="@+id/history_empty"
-                        style="@style/Text.Body"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="16dp"
-                        android:text="@string/history_empty"
-                        android:visibility="gone" />
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/line" />
+
+                        <LinearLayout
+                            android:id="@+id/history_header"
+                            style="@style/Row"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@color/surface"
+                            android:minHeight="0dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/line" />
+
+                        <LinearLayout
+                            android:id="@+id/history"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:divider="@drawable/hairline"
+                            android:orientation="vertical"
+                            android:showDividers="middle" />
+
+                        <TextView
+                            android:id="@+id/history_empty"
+                            style="@style/Text.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="16dp"
+                            android:text="@string/history_empty"
+                            android:visibility="gone" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
+        </LinearLayout>
+
+        <!-- Pushes the footer to the bottom when the content is shorter than the screen. -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/line" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/page_margin"
+            android:paddingTop="18dp"
+            android:paddingEnd="@dimen/page_margin"
+            android:paddingBottom="18dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/logo" />
+
+            <TextView
+                style="@style/Text.Mono.Small"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:text="@string/footer_brand" />
+
+            <TextView
+                style="@style/Text.Mono.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/footer_site" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The launcher icon for the header: same teal and struck-through ring as ic_launcher,
+     whose glyph paths are reused at 32/72, the share of the 108 canvas a launcher shows. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <path
+        android:fillColor="#0F766E"
+        android:pathData="M7,0H25A7,7 0,0 1,32 7V25A7,7 0,0 1,25 32H7A7,7 0,0 1,0 25V7A7,7 0,0 1,7 0Z" />
+    <group
+        android:scaleX="0.4444"
+        android:scaleY="0.4444"
+        android:translateX="-8"
+        android:translateY="-8">
+        <path
+            android:pathData="M70.26,49.03A17,17 0,0 1,49.03 70.26M37.74,58.97A17,17 0,0 1,58.97 37.74"
+            android:strokeWidth="5.5"
+            android:strokeColor="#FFFFFF" />
+        <path
+            android:pathData="M37.7,70.3L70.3,37.7"
+            android:strokeLineCap="round"
+            android:strokeWidth="5.5"
+            android:strokeColor="#FFFFFF" />
+    </group>
+</vector>

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unveröffentlicht
+
+- Der Verlauf zeigt nur noch die Läufe seit dem letzten Neustart und ist eingeklappt, bis man ihn antippt. Ältere Läufe erkennt die App am Boot-Zähler des Systems und verwirft sie.
+- Oben links steht jetzt das App-Symbol statt des Minnal-Lab-Zeichens. Das Zeichen steht in einer neuen Fußzeile.
+
 ## 1.4 (versionCode 5), 27.10.2026
 
 - Ein/Aus-Schalter in der App. „Aus“ hebt den Änderungs-Trigger auf und setzt `alexa_app_in_foreground` auf 0, das Symbol erscheint sofort wieder. Der Zustand übersteht Neustarts und Updates.

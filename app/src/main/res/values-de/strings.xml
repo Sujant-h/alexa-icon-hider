@@ -41,12 +41,19 @@
     <string name="inactive">inaktiv</string>
 
     <string name="section_history">Verlauf</string>
+    <string name="history_title">Seit dem Neustart</string>
     <string name="history_hint">Letzte 20 Läufe</string>
+    <plurals name="history_count">
+        <item quantity="one">%d Lauf</item>
+        <item quantity="other">%d Läufe</item>
+    </plurals>
+    <string name="history_open">ausgeklappt</string>
+    <string name="history_closed">eingeklappt</string>
     <string name="col_time">Uhrzeit</string>
     <string name="col_uptime">Seit Boot</string>
     <string name="col_reason">Anlass</string>
     <string name="col_value">Wert</string>
-    <string name="history_empty">Noch keine Läufe aufgezeichnet.</string>
+    <string name="history_empty">Seit dem Neustart noch keine Läufe.</string>
 
     <string name="reason_activity">App geöffnet</string>
     <string name="reason_on">Eingeschaltet</string>

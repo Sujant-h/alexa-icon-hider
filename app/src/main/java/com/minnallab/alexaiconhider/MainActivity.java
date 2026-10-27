@@ -33,14 +33,17 @@ import android.widget.TextView;
 public final class MainActivity extends Activity {
     // Column weights of the history table, shared by header and rows.
     private static final float[] COLUMNS = {1f, 1.1f, 1.9f, 0.6f};
+    private static final String STATE_HISTORY_OPEN = "history_open";
 
     private Switch toggle;
     private TaskbarFigure figure;
-    private TextView state, headline, summary, legend, calloutTitle, calloutText;
-    private View stateDot, callout, commandRow;
+    private TextView state, headline, summary, legend, calloutTitle, calloutText, historyCount;
+    private View stateDot, callout, commandRow, historyToggle, historyTable, historyChevron;
     private Button copy;
     private LinearLayout history;
     private boolean shown;
+    // The history is for diagnosis, so it starts closed each time the screen is opened.
+    private boolean historyOpen;
 
     // Keeps the screen current while it is open, e.g. when the loop guard switches off.
     // ResetJob also runs on the main thread, so its run is recorded before this is called.
@@ -69,6 +72,10 @@ public final class MainActivity extends Activity {
         commandRow = findViewById(R.id.command_row);
         copy = findViewById(R.id.copy);
         history = findViewById(R.id.history);
+        historyToggle = findViewById(R.id.history_toggle);
+        historyTable = findViewById(R.id.history_table);
+        historyChevron = findViewById(R.id.history_chevron);
+        historyCount = findViewById(R.id.history_count);
 
         layoutColumns();
         toggle.setText(toggleLabel());
@@ -83,6 +90,9 @@ public final class MainActivity extends Activity {
         addHistoryCells((LinearLayout) findViewById(R.id.history_header), R.style.Text_Eyebrow,
                 getString(R.string.col_time), getString(R.string.col_uptime),
                 getString(R.string.col_reason), getString(R.string.col_value));
+        historyOpen = savedState != null && savedState.getBoolean(STATE_HISTORY_OPEN);
+        setHistoryOpen(historyOpen, false);
+        historyToggle.setOnClickListener(v -> setHistoryOpen(!historyOpen, true));
 
         // Apps targeting API 35+ are drawn edge-to-edge; keep content clear of the system bars.
         findViewById(R.id.scroll).setOnApplyWindowInsetsListener((v, insets) -> {
@@ -111,6 +121,12 @@ public final class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         getContentResolver().unregisterContentObserver(observer);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle out) {
+        super.onSaveInstanceState(out);
+        out.putBoolean(STATE_HISTORY_OPEN, historyOpen);
     }
 
     /** Side by side on wide screens (R.bool.wide, w720dp), stacked otherwise. */
@@ -213,12 +229,29 @@ public final class MainActivity extends Activity {
         ((TextView) findViewById(valueId)).setText(value);
     }
 
+    private void setHistoryOpen(boolean open, boolean animate) {
+        historyOpen = open;
+        historyTable.setVisibility(open ? View.VISIBLE : View.GONE);
+        historyChevron.animate().cancel();
+        if (animate) {
+            historyChevron.animate().rotation(open ? 180 : 0).setDuration(200);
+        } else {
+            historyChevron.setRotation(open ? 180 : 0);
+        }
+        historyToggle.setStateDescription(
+                getString(open ? R.string.history_open : R.string.history_closed));
+    }
+
     private void showHistory() {
         history.removeAllViews();
         String all = Hider.history(this);
+        String[] lines = all.isEmpty() ? new String[0] : all.split("\n");
+        String count = getResources().getQuantityString(
+                R.plurals.history_count, lines.length, lines.length);
+        historyCount.setText(String.valueOf(lines.length));
+        historyToggle.setContentDescription(getString(R.string.history_title) + ", " + count);
         findViewById(R.id.history_empty).setVisibility(all.isEmpty() ? View.VISIBLE : View.GONE);
-        if (all.isEmpty()) return;
-        for (String line : all.split("\n")) {
+        for (String line : lines) {
             LinearLayout row = new LinearLayout(this, null, 0, R.style.Row);
             row.setMinimumHeight(0);
             // Hider.log: "time  +uptime s  reason  before[→after][  off|paused]".

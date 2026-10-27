@@ -63,7 +63,7 @@ adb shell pm grant --user 10 com.minnallab.alexaiconhider android.permission.WRI
 adb shell pm grant --user 10 com.minnallab.alexaiconhider android.permission.POST_NOTIFICATIONS
 ```
 
-Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb shell am start --user 10 -n com.minnallab.alexaiconhider/.MainActivity`. Eine frisch installierte App ist im Zustand „stopped“ (`stopped=true notLaunched=true`) und erhält bis zum ersten Start keine Boot-Broadcasts. Die App zeigt den Ein/Aus-Schalter, den Status und die letzten 20 Läufe. Das Öffnen der App steht nur im Verlauf, wenn sie dabei den Wert setzen musste. Fehlt `WRITE_SECURE_SETTINGS`, zeigt sie den `pm grant`-Befehl mit der richtigen Nutzernummer zum Kopieren an. Ein MacroDroid-Makro für das Alexa-Symbol kannst du danach löschen.
+Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb shell am start --user 10 -n com.minnallab.alexaiconhider/.MainActivity`. Eine frisch installierte App ist im Zustand „stopped“ (`stopped=true notLaunched=true`) und erhält bis zum ersten Start keine Boot-Broadcasts. Die App zeigt den Ein/Aus-Schalter, den Status und, aufgeklappt, bis zu 20 Läufe seit dem letzten Neustart. Nach einem Neustart beginnt der Verlauf leer. Das Öffnen der App steht nur im Verlauf, wenn sie dabei den Wert setzen musste. Fehlt `WRITE_SECURE_SETTINGS`, zeigt sie den `pm grant`-Befehl mit der richtigen Nutzernummer zum Kopieren an. Ein MacroDroid-Makro für das Alexa-Symbol kannst du danach löschen.
 
 **Berechtigungen:**
 

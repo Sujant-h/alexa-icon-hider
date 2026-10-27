@@ -44,6 +44,7 @@ final class Hider {
     private static final String CHANNEL_LOOP_ID = "loop";
     private static final String PREF_NOTIFIED = "notified_missing_permission";
     private static final String PREF_HISTORY = "history";
+    private static final String PREF_HISTORY_BOOT = "history_boot";
     private static final String PREF_DISABLED = "disabled";
     private static final String PREF_WRITES = "writes";
     private static final String PREF_PAUSED_AT = "paused_at";
@@ -124,9 +125,19 @@ final class Hider {
         log(c, System.currentTimeMillis(), "off", before, wrote ? "→0" : "");
     }
 
-    /** Last runs, newest first; logcat drops app logs early in boot on this device. */
+    /**
+     * Runs since the last boot, newest first; logcat drops app logs early in boot on this
+     * device. Older runs are dropped by comparing the boot counter, not cleared by
+     * BootReceiver, because the change trigger can run before the boot broadcast arrives.
+     */
     static String history(Context c) {
-        return prefs(c).getString(PREF_HISTORY, "");
+        SharedPreferences prefs = prefs(c);
+        return prefs.getInt(PREF_HISTORY_BOOT, -1) == bootCount(c)
+                ? prefs.getString(PREF_HISTORY, "") : "";
+    }
+
+    private static int bootCount(Context c) {
+        return Settings.Global.getInt(c.getContentResolver(), Settings.Global.BOOT_COUNT, -1);
     }
 
     private static boolean write(Context c, int value) {
@@ -147,13 +158,13 @@ final class Hider {
     }
 
     private static void record(Context c, String line) {
-        SharedPreferences prefs = prefs(c);
-        String[] old = prefs.getString(PREF_HISTORY, "").split("\n");
+        String[] old = history(c).split("\n");
         StringBuilder sb = new StringBuilder(line);
         for (int i = 0; i < old.length && i < HISTORY_SIZE - 1; i++) {
             if (!old[i].isEmpty()) sb.append('\n').append(old[i]);
         }
-        prefs.edit().putString(PREF_HISTORY, sb.toString()).commit();
+        prefs(c).edit().putString(PREF_HISTORY, sb.toString())
+                .putInt(PREF_HISTORY_BOOT, bootCount(c)).commit();
     }
 
     private static String shortReason(String reason) {

@@ -46,12 +46,19 @@
     <string name="inactive">inactive</string>
 
     <string name="section_history">History</string>
+    <string name="history_title">Since restart</string>
     <string name="history_hint">Last 20 runs</string>
+    <plurals name="history_count">
+        <item quantity="one">%d run</item>
+        <item quantity="other">%d runs</item>
+    </plurals>
+    <string name="history_open">expanded</string>
+    <string name="history_closed">collapsed</string>
     <string name="col_time">Time</string>
     <string name="col_uptime">Since boot</string>
     <string name="col_reason">Reason</string>
     <string name="col_value">Value</string>
-    <string name="history_empty">No runs recorded yet.</string>
+    <string name="history_empty">No runs since the restart yet.</string>
 
     <string name="reason_activity">App opened</string>
     <string name="reason_on">Switched on</string>
@@ -61,6 +68,8 @@
     <string name="reason_boot">Boot</string>
     <string name="reason_update">Update</string>
 
+    <string name="footer_brand" translatable="false">Minnal Lab</string>
+    <string name="footer_site" translatable="false">minnallab.com</string>
     <string name="flag_off">off</string>
     <string name="flag_paused">paused</string>
 
