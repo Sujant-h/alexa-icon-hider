@@ -1,8 +1,29 @@
+# Build
 .gradle/
+.kotlin/
 build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.apks
+*.hprof
+
+# IDE and OS
 .idea/
 *.iml
+.DS_Store
+Thumbs.db
+
+# Local settings and signing secrets
 local.properties
 keystore.properties
 *.jks
 *.keystore
+*.p12
+*.pem
+.env
+
+# Claude Code local settings
+.claude/settings.local.json
