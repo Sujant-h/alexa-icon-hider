@@ -46,8 +46,7 @@ public final class MainActivity extends Activity {
     private LinearLayout history;
     private Switch telemetryToggle;
     private Button resetAdId;
-    private TextView adIdValue, ramValue, ramRecommended, ramCommand;
-    private Button ramCopy;
+    private TextView adIdValue;
     private boolean shown;
     // The history is for diagnosis, so it starts closed each time the screen is opened.
     private boolean historyOpen;
@@ -98,10 +97,6 @@ public final class MainActivity extends Activity {
         telemetryToggle = findViewById(R.id.telemetry_toggle);
         resetAdId = findViewById(R.id.reset_ad_id);
         adIdValue = findViewById(R.id.ad_id_value);
-        ramValue = findViewById(R.id.ram_value);
-        ramRecommended = findViewById(R.id.ram_max);
-        ramCommand = findViewById(R.id.ram_command);
-        ramCopy = findViewById(R.id.ram_copy);
 
         telemetryToggle.setText(telemetryLabel());
         // Click, not checked-change, so only the user's tap toggles, not showStatus().
@@ -113,8 +108,6 @@ public final class MainActivity extends Activity {
             Telemetry.resetAdvertisingId(this);
             showPrivacy();
         });
-        ramCopy.setOnClickListener(v -> copyRamCommand());
-        ramCommand.setText(Ram.commands(this));
         addHistoryCells((LinearLayout) findViewById(R.id.history_header), R.style.Text_Eyebrow,
                 getString(R.string.col_time), getString(R.string.col_uptime),
                 getString(R.string.col_reason), getString(R.string.col_value));
@@ -271,7 +264,6 @@ public final class MainActivity extends Activity {
                 exempt ? accent : on ? warn : subtle);
         showHistory();
         showPrivacy();
-        showRam();
     }
 
     private void setState(int label, int color, int title, int text) {
@@ -378,16 +370,6 @@ public final class MainActivity extends Activity {
 
     private final Runnable resetCopy = () -> copy.setText(R.string.copy);
 
-    private void copyRamCommand() {
-        getSystemService(ClipboardManager.class)
-                .setPrimaryClip(ClipData.newPlainText("adb", ramCommand.getText()));
-        ramCopy.setText(R.string.copied);
-        ramCopy.removeCallbacks(resetRamCopy);
-        ramCopy.postDelayed(resetRamCopy, 2000);
-    }
-
-    private final Runnable resetRamCopy = () -> ramCopy.setText(R.string.copy);
-
     private void showPrivacy() {
         boolean on = Telemetry.isEnabled(this);
         int track = Telemetry.currentTrack(this);
@@ -408,12 +390,6 @@ public final class MainActivity extends Activity {
         setRow(R.id.dtcp_dot, R.id.dtcp_value,
                 dtcp == 0 ? getString(R.string.blocked) : getString(R.string.allowed),
                 dtcp == 0 ? accent : on ? getColor(R.color.warn) : subtle);
-    }
-
-    private void showRam() {
-        ramValue.setText(getString(R.string.ram_gb, Ram.totalRamGb(this)));
-        ramRecommended.setText(String.valueOf(Ram.recommendedMaxCached(this)));
-        ramCommand.setText(Ram.commands(this));
     }
 
     private String versionName() {

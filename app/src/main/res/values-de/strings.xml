@@ -85,10 +85,4 @@
     <string name="reset_ad_action">Zurücksetzen</string>
     <string name="blocked">blockiert</string>
     <string name="allowed">erlaubt</string>
-
-    <string name="section_ram">RAM</string>
-    <string name="row_ram">Installierter RAM</string>
-    <string name="row_ram_max_key">Android-Standard 1024</string>
-    <string name="ram_gb">%1$d GB</string>
-    <string name="ram_note">Seit Android 14 hält das System bis zu 1024 Hintergrund-Apps im Cache. Sie sind eingefroren, brauchen keine CPU, und Android beendet sie selbst, wenn der Speicher knapp wird. Diese DeviceConfig-Befehle senken das Limit auf den Wert vor Android 14 und aktivieren proaktives Beenden. Apps starten dann öfter neu. Die App kann DeviceConfig nicht selbst schreiben, führe sie einmalig per ADB aus. Rückgängig machen: device_config delete mit denselben Schlüsseln.</string>
 </resources>
