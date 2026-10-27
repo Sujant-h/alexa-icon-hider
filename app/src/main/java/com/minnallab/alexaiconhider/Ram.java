@@ -12,6 +12,9 @@ final class Ram {
     static final int MAX_CACHED_SMALL = 32;
     static final int MAX_CACHED_LARGE = 64;
     static final int LARGE_RAM_GB = 12;
+    // Sold sizes. totalMem lacks the kernel's reserved memory (8 GB reports 6.7 GiB),
+    // so we show the smallest one that holds it.
+    private static final int[] SIZES_GB = {2, 3, 4, 6, 8, 12, 16, 24, 32};
 
     private Ram() {}
 
@@ -19,10 +22,14 @@ final class Ram {
         ActivityManager am = (ActivityManager) c.getSystemService(Context.ACTIVITY_SERVICE);
         ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
         am.getMemoryInfo(mi);
-        return Math.round(mi.totalMem / 1024.0 / 1024.0 / 1024.0);
+        double gib = mi.totalMem / 1024.0 / 1024.0 / 1024.0;
+        for (int size : SIZES_GB) {
+            if (gib <= size) return size;
+        }
+        return (long) Math.ceil(gib);
     }
 
-    /** Stock Android keeps ~32 cached processes; the 16 GB model can hold a few more. */
+    /** Android before 14 kept 32 cached processes; 12 GB and more can hold a few more. */
     static int recommendedMaxCached(Context c) {
         return totalRamGb(c) >= LARGE_RAM_GB ? MAX_CACHED_LARGE : MAX_CACHED_SMALL;
     }

@@ -101,8 +101,8 @@
     <string name="section_ram">RAM</string>
     <string name="row_ram">Installed RAM</string>
     <string name="row_ram_key" translatable="false">ActivityManager.MemoryInfo</string>
-    <string name="row_ram_max">max_cached_processes</string>
-    <string name="row_ram_max_key">Fire OS ships 1024</string>
+    <string name="row_ram_max" translatable="false">max_cached_processes</string>
+    <string name="row_ram_max_key">Android default 1024</string>
     <string name="ram_gb">%1$d GB</string>
-    <string name="ram_note">Fire OS keeps up to 1024 cached background apps, which holds memory. These DeviceConfig commands lower that and enable proactive app kills. The app cannot write DeviceConfig itself, so run them once via ADB.</string>
+    <string name="ram_note">Since Android 14 the system keeps up to 1024 background apps in the cache. They are frozen and use no CPU, and Android ends them on its own when memory runs low. These DeviceConfig commands lower the limit to the value from before Android 14 and enable proactive kills. Apps then start from scratch more often. The app cannot write DeviceConfig itself, so run them once via ADB. To undo, run device_config delete with the same keys.</string>
 </resources>
