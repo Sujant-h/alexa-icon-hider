@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    # beta collects changes for testing; its debug APK is the app-debug artifact below.
+    # beta collects changes for testing; each run uploads its debug APK, see below.
     branches: [main, beta]
   pull_request:
   workflow_dispatch:
@@ -42,9 +42,19 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      # Named after version and commit, so downloads from different runs can be told apart.
+      - name: Name the debug APK
+        id: apk
+        run: |
+          version="$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' app/build.gradle.kts)"
+          apk="alexa-icon-hider-${version}-${GITHUB_SHA::7}-debug.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$apk"
+          echo "path=$apk" >> "$GITHUB_OUTPUT"
+
+      # Not zipped, so the download is the APK itself; the artifact takes the file's name.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.apk.outputs.path }}
+          archive: false
           if-no-files-found: error
           retention-days: 14
