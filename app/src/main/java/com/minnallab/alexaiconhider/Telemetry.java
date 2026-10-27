@@ -19,6 +19,11 @@ import java.util.UUID;
  *
  * While off we never write, so boot and updates leave the user's own Fire OS choice alone.
  * Switching off restores the values that were there when the user switched on.
+ *
+ * Switching on also resets the advertising id once. Amazon's policy forbids apps to carry
+ * earlier data over to a new id, so this cuts the profile collected so far. We do not rotate
+ * it periodically: with limit_ad_tracking set, the id is only left for frequency capping
+ * and attribution, and that would need a recurring job.
  */
 final class Telemetry {
     static final String TAG = "Telemetry";
@@ -37,7 +42,10 @@ final class Telemetry {
         return prefs(c).getBoolean(PREF_DISABLED, false);
     }
 
-    /** On saves the current values first; off writes them back and forgets them. */
+    /**
+     * On saves the current values first and resets the advertising id; off writes the saved
+     * values back and forgets them. Only the user's tap gets here, never boot or update.
+     */
     static void setEnabled(Context c, boolean on) {
         SharedPreferences p = prefs(c);
         if (on) {
@@ -47,6 +55,10 @@ final class Telemetry {
             }
             p.edit().putBoolean(PREF_DISABLED, true).commit();
             apply(c, "on");
+            if (hasWritePermission(c)) {
+                resetAdvertisingId(c);
+                Log.i(TAG, "on advertising_id reset");
+            }
             return;
         }
         p.edit().putBoolean(PREF_DISABLED, false).commit();
