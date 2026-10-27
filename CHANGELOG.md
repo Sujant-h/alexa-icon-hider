@@ -14,6 +14,8 @@ Beta: bisher nur im Emulator getestet, noch nicht auf dem Alexa Tablet 12 Pro. D
 - „Seit Boot“ im Verlauf nutzt das Dezimalzeichen der Sprache. Der Schleifenschutz-Text sagt „innerhalb von 60 s“.
 - Oben links steht jetzt das App-Symbol statt des Minnal-Lab-Zeichens. Das Zeichen steht in einer neuen Fußzeile.
 
+SHA-256 von `alexa-icon-hider-1.5-beta.1.apk`: `5bfe4717d1d011e1d2a8e5403bb79c83f2f5fa0b25e39936ed8f2ab598bdcc76`
+
 ## 1.4 (versionCode 5), 27.10.2026
 
 - Ein/Aus-Schalter in der App. „Aus“ hebt den Änderungs-Trigger auf und setzt `alexa_app_in_foreground` auf 0, das Symbol erscheint sofort wieder. Der Zustand übersteht Neustarts und Updates.
