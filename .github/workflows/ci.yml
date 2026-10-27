@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # beta collects changes for testing; its debug APK is the app-debug artifact below.
+    branches: [main, beta]
   pull_request:
   workflow_dispatch:
 
