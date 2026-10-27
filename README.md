@@ -36,23 +36,23 @@ Der Schleifenschutz greift, wenn ein anderer Prozess den Wert ständig zurückse
 Die signierte APK liegt bei den Releases als `alexa-icon-hider-<version>.apk`. Die SHA-256-Prüfsumme jeder Version steht im [CHANGELOG](CHANGELOG.md).
 
 ```bash
-sha256sum alexa-icon-hider-1.3.apk
+sha256sum alexa-icon-hider-1.4.apk
 ```
 
-Unter Windows geht das mit `certutil -hashfile alexa-icon-hider-1.3.apk SHA256`. Alle Versionen sind mit demselben Schlüssel signiert. Updates installieren sich nur, wenn der Schlüssel übereinstimmt. Fingerabdruck des Signaturzertifikats (`CN=minnallab`):
+Unter Windows geht das mit `certutil -hashfile alexa-icon-hider-1.4.apk SHA256`. Alle Versionen sind mit demselben Schlüssel signiert. Updates installieren sich nur, wenn der Schlüssel übereinstimmt. Fingerabdruck des Signaturzertifikats (`CN=minnallab`):
 
 ```
 SHA-256: 24b85f093c4ddda288d8be50cd7484a7cbc04477fcfc2cd4db19a2ab5f21d33e
 ```
 
-Prüfen lässt er sich mit `apksigner verify --print-certs alexa-icon-hider-1.3.apk` aus den Android Build-Tools.
+Prüfen lässt er sich mit `apksigner verify --print-certs alexa-icon-hider-1.4.apk` aus den Android Build-Tools.
 
 ## Installation
 
 Voraussetzung: `adb` mit USB- oder WLAN-Debugging. Auf dem Alexa Tablet 12 Pro ist dein Nutzer die 10, das zeigt `adb shell am get-current-user`. Auf anderen Geräten ersetzt du `10` in allen Befehlen durch diese Zahl.
 
 ```bash
-adb install --user 10 alexa-icon-hider-1.3.apk
+adb install --user 10 alexa-icon-hider-1.4.apk
 ```
 
 ```bash
@@ -63,13 +63,13 @@ adb shell pm grant --user 10 com.minnallab.alexaiconhider android.permission.WRI
 adb shell pm grant --user 10 com.minnallab.alexaiconhider android.permission.POST_NOTIFICATIONS
 ```
 
-Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb shell am start --user 10 -n com.minnallab.alexaiconhider/.MainActivity`. Eine frisch installierte App ist im Zustand „stopped“ (`stopped=true notLaunched=true`) und erhält bis zum ersten Start keine Boot-Broadcasts. Die App zeigt den Ein/Aus-Schalter, den Status und die letzten 20 Läufe. Ein MacroDroid-Makro für das Alexa-Symbol kannst du danach löschen.
+Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb shell am start --user 10 -n com.minnallab.alexaiconhider/.MainActivity`. Eine frisch installierte App ist im Zustand „stopped“ (`stopped=true notLaunched=true`) und erhält bis zum ersten Start keine Boot-Broadcasts. Die App zeigt den Ein/Aus-Schalter, den Status und die letzten 20 Läufe. Das Öffnen der App steht nur im Verlauf, wenn sie dabei den Wert setzen musste. Fehlt `WRITE_SECURE_SETTINGS`, zeigt sie den `pm grant`-Befehl mit der richtigen Nutzernummer zum Kopieren an. Ein MacroDroid-Makro für das Alexa-Symbol kannst du danach löschen.
 
 **Berechtigungen:**
 
 - `WRITE_SECURE_SETTINGS` (per ADB): zum Schreiben der Setting.
 - `RECEIVE_BOOT_COMPLETED`: wird bei der Installation automatisch erteilt, Android verlangt sie für Boot-Broadcasts.
-- `POST_NOTIFICATIONS`: nur für den Hinweis, falls `WRITE_SECURE_SETTINGS` fehlt. Fehlt sie, erscheint der Hinweis nur in der App und im Log.
+- `POST_NOTIFICATIONS`: für den Hinweis, falls `WRITE_SECURE_SETTINGS` fehlt, und für den Schleifenschutz. Fehlt sie, erscheint der Hinweis nur in der App und im Log. Wird sie später erteilt, kommt die Benachrichtigung beim nächsten Lauf nach.
 
 ## Rückgängig machen
 
@@ -132,7 +132,9 @@ Zeiten in Sekunden seit dem Boot. Die Systemereignisse stammen aus `logcat -b al
 | Schleifenschutz (1.4): `settings put … 0` alle 1,5 s | Nach dem 10. Schreiben der App ausgeschaltet (zwei Läufe), Wert bleibt danach 0, Benachrichtigung erscheint. Eine offene App zeigt das ohne Neustart an |
 | Update im ausgeschalteten Zustand (1.4) | `MY_PACKAGE_REPLACED` läuft mit `aus` und schreibt nichts, der Grund bleibt in der App sichtbar |
 | `WRITE_SECURE_SETTINGS` fehlt | kein Absturz, genau eine Benachrichtigung mit dem `pm grant`-Befehl. Nach erneutem Erteilen und Öffnen ist sie weg und der Wert wieder 1 |
-| APK-Größe | 15.476 Bytes (Release 1.3, R8, v2-signiert) |
+| Benachrichtigungen erst nachträglich erlaubt (1.4) | Bei verbotenen Benachrichtigungen und fehlender Berechtigung erscheint nichts. Nach dem Erlauben erscheint der Hinweis beim nächsten Zurücksetzen, mit `--user 10` im Befehl |
+| App mehrmals öffnen (1.4) | Bei Wert 1 kein neuer Eintrag im Verlauf, Boot- und Trigger-Läufe bleiben erhalten |
+| APK-Größe | 45.192 Bytes (Release 1.4, R8, v2-signiert). 1.3 hatte 15.476 Bytes, der Zuwachs kommt vom neuen Design und App-Symbol |
 | Standby-Bucket | 10 (ACTIVE) direkt nach den Tests |
 
 Noch nicht über mehrere Tage beobachtet: ob der Content-Trigger-Job in einem niedrigeren Standby-Bucket verzögert wird, und ob spätere Entsperrungen wirklich nicht mehr zurücksetzen (laut Code nicht). Beides zeigt der Verlauf in der App.

@@ -77,7 +77,7 @@ public final class MainActivity extends Activity {
             Hider.setEnabled(this, toggle.isChecked());
             showStatus();
         });
-        ((TextView) findViewById(R.id.command)).setText(Hider.GRANT_CMD);
+        ((TextView) findViewById(R.id.command)).setText(Hider.grantCommand());
         copy.setOnClickListener(v -> copyCommand());
         ((TextView) findViewById(R.id.version)).setText("v" + versionName());
         addHistoryCells((LinearLayout) findViewById(R.id.history_header), R.style.Text_Eyebrow,
@@ -267,7 +267,7 @@ public final class MainActivity extends Activity {
     /** Android 13+ confirms the copy itself, so the button only changes its label. */
     private void copyCommand() {
         getSystemService(ClipboardManager.class)
-                .setPrimaryClip(ClipData.newPlainText("adb", Hider.GRANT_CMD));
+                .setPrimaryClip(ClipData.newPlainText("adb", Hider.grantCommand()));
         copy.setText(R.string.copied);
         copy.removeCallbacks(resetCopy);
         copy.postDelayed(resetCopy, 2000);

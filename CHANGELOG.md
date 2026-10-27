@@ -1,12 +1,17 @@
 # Changelog
 
-## 1.4 (versionCode 5), unveröffentlicht
+## 1.4 (versionCode 5), 27.10.2026
 
 - Ein/Aus-Schalter in der App. „Aus“ hebt den Änderungs-Trigger auf und setzt `alexa_app_in_foreground` auf 0, das Symbol erscheint sofort wieder. Der Zustand übersteht Neustarts und Updates.
 - Schleifenschutz: Muss die App den Wert 10-mal innerhalb von 60 s neu setzen, schaltet sie sich selbst aus und meldet das per Benachrichtigung. Den Wert lässt sie dabei, wie er ist. Mit dem Schalter geht es weiter.
 - Der Verlauf zeigt ausgeschaltete Läufe mit `aus` und das automatische Ausschalten mit `pausiert`.
 - Neues Design im Stil von minnallab.com: Statuszeile, Schalter als Karte, Skizze der Taskleiste, Systemwerte und Verlauf als Tabelle, zweispaltig auf dem Tablet, helles und dunkles Theme. Fehlt die Berechtigung, lässt sich der `pm grant`-Befehl direkt kopieren. Dazu ein App-Symbol.
 - Die Statusanzeige aktualisiert sich, solange die App offen ist, sobald sich der Wert ändert.
+- Das Öffnen der App steht nur noch im Verlauf, wenn sie dabei schreiben musste. Bisher verdrängte jedes Öffnen einen Boot- oder Trigger-Lauf aus den letzten 20 Einträgen.
+- Der `pm grant`-Befehl in App und Benachrichtigung enthält die tatsächliche Nutzernummer statt fest `10`.
+- Der Hinweis auf die fehlende Berechtigung geht nicht mehr verloren, wenn Benachrichtigungen beim ersten Mal verboten waren. Er erscheint, sobald sie erlaubt sind.
+
+SHA-256 von `alexa-icon-hider-1.4.apk`: `4711818a3d2011d5698b99a20e2ffa6ec2a39806117c8f0b58bb4be411d10b33`
 
 ## 1.3 (versionCode 4), 27.10.2026
 

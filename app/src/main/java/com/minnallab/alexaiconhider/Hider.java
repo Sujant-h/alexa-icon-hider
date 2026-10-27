@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Process;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
@@ -33,8 +34,6 @@ import java.util.Locale;
 final class Hider {
     static final String TAG = "AlexaIconHider";
     static final String KEY = "alexa_app_in_foreground";
-    static final String GRANT_CMD = "adb shell pm grant --user 10 com.minnallab.alexaiconhider "
-            + "android.permission.WRITE_SECURE_SETTINGS";
     static final int LOOP_WRITES = 10;
     static final long LOOP_WINDOW_MS = 60_000;
 
@@ -49,8 +48,16 @@ final class Hider {
     private static final String PREF_WRITES = "writes";
     private static final String PREF_PAUSED_AT = "paused_at";
     private static final int HISTORY_SIZE = 20;
+    // UserHandle.PER_USER_RANGE, hidden API: uid = userId * 100000 + appId.
+    private static final int PER_USER_RANGE = 100_000;
 
     private Hider() {}
+
+    /** The pm grant command for the user we run as (10 on the Alexa Tablet 12 Pro). */
+    static String grantCommand() {
+        return "adb shell pm grant --user " + Process.myUid() / PER_USER_RANGE
+                + " com.minnallab.alexaiconhider android.permission.WRITE_SECURE_SETTINGS";
+    }
 
     static boolean hasWritePermission(Context c) {
         return c.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS)
@@ -64,6 +71,8 @@ final class Hider {
     /**
      * Idempotent: writes only if the value differs, then (re)arms the change trigger.
      * While switched off it neither writes nor arms the trigger, it only records the run.
+     * Opening the app is recorded only when it wrote, so it does not push boot runs out
+     * of the history.
      */
     static void apply(Context c, String reason) {
         int before = currentValue(c);
@@ -81,7 +90,9 @@ final class Hider {
             on = false;
             suffix = "  pausiert";
         }
-        log(c, now, reason, before, wrote ? "→1" + suffix : suffix);
+        if (wrote || !"activity".equals(reason)) {
+            log(c, now, reason, before, wrote ? "→1" + suffix : suffix);
+        }
         if (on) scheduleTrigger(c);
     }
 
@@ -200,15 +211,20 @@ final class Hider {
         return c.getSystemService(JobScheduler.class).getPendingJob(JOB_ID) != null;
     }
 
-    /** Shown once until the permission works again. */
+    /**
+     * Shown once until the permission works again. While notifications are off nothing is
+     * remembered, so the hint still appears once they are allowed.
+     */
     private static void notifyMissingPermission(Context c) {
         SharedPreferences prefs = prefs(c);
         if (prefs.getBoolean(PREF_NOTIFIED, false)) return;
-        Log.w(TAG, "WRITE_SECURE_SETTINGS missing, grant with: " + GRANT_CMD);
-        post(c, NOTIFICATION_ID, CHANNEL_ID, "Berechtigung",
+        String cmd = grantCommand();
+        Log.w(TAG, "WRITE_SECURE_SETTINGS missing, grant with: " + cmd);
+        if (post(c, NOTIFICATION_ID, CHANNEL_ID, "Berechtigung",
                 "Alexa Icon Hider: Berechtigung fehlt", "Einmalig per ADB ausführen:",
-                "Einmalig per ADB ausführen:\n" + GRANT_CMD);
-        prefs.edit().putBoolean(PREF_NOTIFIED, true).apply();
+                "Einmalig per ADB ausführen:\n" + cmd)) {
+            prefs.edit().putBoolean(PREF_NOTIFIED, true).apply();
+        }
     }
 
     private static void clearMissingPermission(Context c) {
@@ -218,8 +234,8 @@ final class Hider {
         prefs.edit().remove(PREF_NOTIFIED).apply();
     }
 
-    /** Tapping it opens the status screen. */
-    private static void post(Context c, int id, String channelId, String channelName,
+    /** Tapping it opens the status screen. False if notifications are off. */
+    private static boolean post(Context c, int id, String channelId, String channelName,
             String title, String text, String bigText) {
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         nm.createNotificationChannel(new NotificationChannel(
@@ -234,7 +250,9 @@ final class Hider {
                 .setContentIntent(open)
                 .setAutoCancel(true)
                 .build();
-        if (nm.areNotificationsEnabled()) nm.notify(id, n);
+        if (!nm.areNotificationsEnabled()) return false;
+        nm.notify(id, n);
+        return true;
     }
 
     // Device-protected storage, readable before the user unlocks (LOCKED_BOOT_COMPLETED).
