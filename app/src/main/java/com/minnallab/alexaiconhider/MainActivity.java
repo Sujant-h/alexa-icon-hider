@@ -44,6 +44,10 @@ public final class MainActivity extends Activity {
     private View stateDot, callout, commandRow, historyToggle, historyTable, historyChevron;
     private Button copy;
     private LinearLayout history;
+    private Switch telemetryToggle;
+    private Button resetAdId;
+    private TextView adIdValue, ramValue, ramRecommended, ramCommand;
+    private Button ramCopy;
     private boolean shown;
     // The history is for diagnosis, so it starts closed each time the screen is opened.
     private boolean historyOpen;
@@ -90,6 +94,27 @@ public final class MainActivity extends Activity {
         command = findViewById(R.id.command);
         copy.setOnClickListener(v -> copyCommand());
         ((TextView) findViewById(R.id.version)).setText("v" + versionName());
+
+        telemetryToggle = findViewById(R.id.telemetry_toggle);
+        resetAdId = findViewById(R.id.reset_ad_id);
+        adIdValue = findViewById(R.id.ad_id_value);
+        ramValue = findViewById(R.id.ram_value);
+        ramRecommended = findViewById(R.id.ram_max);
+        ramCommand = findViewById(R.id.ram_command);
+        ramCopy = findViewById(R.id.ram_copy);
+
+        telemetryToggle.setText(telemetryLabel());
+        // Click, not checked-change, so only the user's tap toggles, not showStatus().
+        telemetryToggle.setOnClickListener(v -> {
+            Telemetry.setEnabled(this, telemetryToggle.isChecked());
+            showPrivacy();
+        });
+        resetAdId.setOnClickListener(v -> {
+            Telemetry.resetAdvertisingId(this);
+            showPrivacy();
+        });
+        ramCopy.setOnClickListener(v -> copyRamCommand());
+        ramCommand.setText(Ram.commands(this));
         addHistoryCells((LinearLayout) findViewById(R.id.history_header), R.style.Text_Eyebrow,
                 getString(R.string.col_time), getString(R.string.col_uptime),
                 getString(R.string.col_reason), getString(R.string.col_value));
@@ -155,6 +180,19 @@ public final class MainActivity extends Activity {
         SpannableStringBuilder sb = new SpannableStringBuilder(getString(R.string.toggle_title));
         int start = sb.length();
         sb.append('\n').append(getString(R.string.toggle_summary));
+        int end = sb.length();
+        sb.setSpan(new AbsoluteSizeSpan(13, true), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        sb.setSpan(new ForegroundColorSpan(getColor(R.color.subtle)), start, end,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        sb.setSpan(new TypefaceSpan(Typeface.create(Typeface.SANS_SERIF, 400, false)),
+                start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return sb;
+    }
+
+    private CharSequence telemetryLabel() {
+        SpannableStringBuilder sb = new SpannableStringBuilder(getString(R.string.telemetry_title));
+        int start = sb.length();
+        sb.append('\n').append(getString(R.string.telemetry_summary));
         int end = sb.length();
         sb.setSpan(new AbsoluteSizeSpan(13, true), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         sb.setSpan(new ForegroundColorSpan(getColor(R.color.subtle)), start, end,
@@ -232,6 +270,8 @@ public final class MainActivity extends Activity {
                 getString(exempt ? R.string.granted : R.string.missing),
                 exempt ? accent : on ? warn : subtle);
         showHistory();
+        showPrivacy();
+        showRam();
     }
 
     private void setState(int label, int color, int title, int text) {
@@ -337,6 +377,44 @@ public final class MainActivity extends Activity {
     }
 
     private final Runnable resetCopy = () -> copy.setText(R.string.copy);
+
+    private void copyRamCommand() {
+        getSystemService(ClipboardManager.class)
+                .setPrimaryClip(ClipData.newPlainText("adb", ramCommand.getText()));
+        ramCopy.setText(R.string.copied);
+        ramCopy.removeCallbacks(resetRamCopy);
+        ramCopy.postDelayed(resetRamCopy, 2000);
+    }
+
+    private final Runnable resetRamCopy = () -> ramCopy.setText(R.string.copy);
+
+    private void showPrivacy() {
+        boolean on = Telemetry.isEnabled(this);
+        int track = Telemetry.currentTrack(this);
+        int dtcp = Telemetry.currentDtcp(this);
+        telemetryToggle.setChecked(on);
+        String adId = Telemetry.currentAdId(this);
+        if (adId == null || adId.isEmpty()) {
+            adId = "—";
+        } else if (adId.length() > 12) {
+            adId = adId.substring(0, 12) + "…";
+        }
+        adIdValue.setText(adId);
+        int subtle = getColor(R.color.subtle);
+        int accent = getColor(R.color.accent);
+        setRow(R.id.track_dot, R.id.track_value,
+                track == 1 ? getString(R.string.blocked) : getString(R.string.allowed),
+                track == 1 ? accent : on ? getColor(R.color.warn) : subtle);
+        setRow(R.id.dtcp_dot, R.id.dtcp_value,
+                dtcp == 0 ? getString(R.string.blocked) : getString(R.string.allowed),
+                dtcp == 0 ? accent : on ? getColor(R.color.warn) : subtle);
+    }
+
+    private void showRam() {
+        ramValue.setText(getString(R.string.ram_gb, Ram.totalRamGb(this)));
+        ramRecommended.setText(String.valueOf(Ram.recommendedMaxCached(this)));
+        ramCommand.setText(Ram.commands(this));
+    }
 
     private String versionName() {
         try {
