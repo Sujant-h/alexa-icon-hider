@@ -5,9 +5,16 @@ plugins {
 }
 
 // Release signing comes from keystore.properties (not in git), so updates keep the same key.
+// In CI the same four values come from SIGNING_* environment variables and take precedence.
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
+    mapOf(
+        "storeFile" to "SIGNING_STORE_FILE",
+        "storePassword" to "SIGNING_STORE_PASSWORD",
+        "keyAlias" to "SIGNING_KEY_ALIAS",
+        "keyPassword" to "SIGNING_KEY_PASSWORD",
+    ).forEach { (key, env) -> System.getenv(env)?.takeIf { it.isNotEmpty() }?.let { setProperty(key, it) } }
 }
 
 android {

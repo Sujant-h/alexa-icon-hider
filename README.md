@@ -33,7 +33,7 @@ Der Schleifenschutz greift, wenn ein anderer Prozess den Wert ständig zurückse
 
 ## Download
 
-Die signierte APK liegt bei den Releases als `alexa-icon-hider-<version>.apk`. Die SHA-256-Prüfsumme jeder Version steht im [CHANGELOG](CHANGELOG.md).
+Die signierte APK liegt bei den Releases als `alexa-icon-hider-<version>.apk`, daneben die `.sha256`-Datei. Die SHA-256-Prüfsumme jeder Version steht auch im [CHANGELOG](CHANGELOG.md).
 
 ```bash
 sha256sum alexa-icon-hider-1.4.apk
@@ -95,7 +95,36 @@ Die APK liegt danach unter `app/build/outputs/apk/release/app-release.apk`.
 
 - JDK 17 oder neuer, getestet mit der JBR 25 von Android Studio.
 - `local.properties` mit `sdk.dir` (nicht im Repo).
-- Signiert wird mit dem Keystore aus `keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`, nicht im Repo). Updates müssen mit demselben Schlüssel signiert sein. Ohne diese Datei entsteht eine unsignierte Release-APK.
+- Signiert wird mit dem Keystore aus `keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`, nicht im Repo). Die Umgebungsvariablen `SIGNING_STORE_FILE`, `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS` und `SIGNING_KEY_PASSWORD` gehen vor. Updates müssen mit demselben Schlüssel signiert sein. Ohne Keystore entsteht eine unsignierte Release-APK.
+
+## CI und Releases
+
+GitHub Actions baut bei jedem Push auf `main` und jedem Pull Request (`.github/workflows/ci.yml`). Der Lauf startet Lint, baut die Debug-APK und dazu die Release-APK unsigniert, damit R8 und das Ressourcen-Shrinking mitgeprüft werden. Die Debug-APK und der Lint-Bericht liegen 14 Tage als Artefakt am Lauf. Alle Actions sind auf einen Commit-SHA festgelegt, `setup-gradle` prüft dabei auch `gradle-wrapper.jar`. Dependabot schlägt monatlich Updates für Actions und das Android-Gradle-Plugin vor.
+
+Ein Release startet mit einem Tag (`.github/workflows/release.yml`):
+
+```bash
+git tag -a v1.5 -m "1.5" && git push origin v1.5
+```
+
+Der Workflow bricht ab, wenn der Tag nicht zu `versionName` passt oder im CHANGELOG kein Abschnitt `## 1.5 …` steht. Dann baut er ohne Gradle-Cache die signierte APK und prüft mit `apksigner`, dass sie mit dem oben genannten Zertifikat signiert ist. Mit jedem anderen Schlüssel bricht er ab. Danach legt er eine Build-Provenance-Attestation an und erstellt das GitHub-Release mit `alexa-icon-hider-<version>.apk`, der `.sha256`-Datei und dem CHANGELOG-Abschnitt als Text. Die Prüfsumme der in CI gebauten APK hängt er an. Sie gehört danach in den CHANGELOG.
+
+Die Herkunft einer heruntergeladenen APK lässt sich so prüfen:
+
+```bash
+gh attestation verify alexa-icon-hider-1.5.apk --repo <owner>/<repo>
+```
+
+Einmalig einzurichten, unter Settings > Environments ein Environment `release` mit diesen Secrets:
+
+| Secret | Inhalt |
+|---|---|
+| `SIGNING_KEYSTORE_BASE64` | Der Keystore als Base64, unter Windows `[Convert]::ToBase64String([IO.File]::ReadAllBytes("alexa-icon-hider-release.jks")) \| Set-Clipboard` |
+| `SIGNING_STORE_PASSWORD` | `storePassword` |
+| `SIGNING_KEY_ALIAS` | `keyAlias` |
+| `SIGNING_KEY_PASSWORD` | `keyPassword` |
+
+Mit „Required reviewers“ am Environment wartet jedes Release auf eine Freigabe, bevor die Secrets ausgelesen werden. Unter Settings > Tags schützt eine Tag-Regel für `v*` davor, dass jemand anderes Tags anlegt oder verschiebt.
 
 ## Testergebnisse (27.10.2026)
 
