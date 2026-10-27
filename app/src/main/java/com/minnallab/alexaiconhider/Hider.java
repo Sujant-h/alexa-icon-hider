@@ -25,18 +25,29 @@ import java.util.Locale;
  * alexa_window_is_open == 0 && alexa_app_in_foreground == 0, and observes both keys live.
  * SystemUI (AlexaFloatingWindowModel.onInit) writes both back to 0 when it starts, so we
  * set alexa_app_in_foreground = 1 after boot and whenever it changes.
+ *
+ * If something else keeps writing 0 (e.g. an enabled Alexa app), we would fight it forever.
+ * After LOOP_WRITES writes within LOOP_WINDOW_MS we switch ourselves off until the user
+ * switches us on again in the app.
  */
 final class Hider {
     static final String TAG = "AlexaIconHider";
     static final String KEY = "alexa_app_in_foreground";
     static final String GRANT_CMD = "adb shell pm grant --user 10 com.minnallab.alexaiconhider "
             + "android.permission.WRITE_SECURE_SETTINGS";
+    static final int LOOP_WRITES = 10;
+    static final long LOOP_WINDOW_MS = 60_000;
 
     private static final int JOB_ID = 1;
     private static final int NOTIFICATION_ID = 1;
+    private static final int NOTIFICATION_LOOP_ID = 2;
     private static final String CHANNEL_ID = "permission";
+    private static final String CHANNEL_LOOP_ID = "loop";
     private static final String PREF_NOTIFIED = "notified_missing_permission";
     private static final String PREF_HISTORY = "history";
+    private static final String PREF_DISABLED = "disabled";
+    private static final String PREF_WRITES = "writes";
+    private static final String PREF_PAUSED_AT = "paused_at";
     private static final int HISTORY_SIZE = 20;
 
     private Hider() {}
@@ -50,31 +61,77 @@ final class Hider {
         return Settings.Secure.getInt(c.getContentResolver(), KEY, 0);
     }
 
-    /** Idempotent: writes only if the value differs, then (re)arms the change trigger. */
+    /**
+     * Idempotent: writes only if the value differs, then (re)arms the change trigger.
+     * While switched off it neither writes nor arms the trigger, it only records the run.
+     */
     static void apply(Context c, String reason) {
         int before = currentValue(c);
+        boolean on = isEnabled(c);
         boolean wrote = false;
-        if (before != 1) {
-            if (hasWritePermission(c)) {
-                try {
-                    wrote = Settings.Secure.putInt(c.getContentResolver(), KEY, 1);
-                } catch (SecurityException e) {
-                    Log.w(TAG, "write rejected", e);
-                }
-            }
+        if (before != 1 && on) {
+            wrote = write(c, 1);
             if (!wrote) notifyMissingPermission(c);
         }
         if (wrote || (before == 1 && hasWritePermission(c))) clearMissingPermission(c);
-        long uptime = SystemClock.elapsedRealtime();
-        Log.i(TAG, reason + " uptime=" + uptime + "ms before=" + before + " wrote=" + wrote);
-        record(c, String.format(Locale.ROOT, "%tT  +%.1f s  %s  %d%s", System.currentTimeMillis(),
-                uptime / 1000.0, shortReason(reason), before, wrote ? "→1" : ""));
-        scheduleTrigger(c);
+        long now = System.currentTimeMillis();
+        String suffix = on ? "" : "  aus";
+        if (wrote && recordWrite(c, now)) {
+            pause(c, now);
+            on = false;
+            suffix = "  pausiert";
+        }
+        log(c, now, reason, before, wrote ? "→1" + suffix : suffix);
+        if (on) scheduleTrigger(c);
+    }
+
+    static boolean isEnabled(Context c) {
+        return !prefs(c).getBoolean(PREF_DISABLED, false);
+    }
+
+    /** Wall-clock time the loop guard switched us off, 0 if it did not. */
+    static long pausedAt(Context c) {
+        return prefs(c).getLong(PREF_PAUSED_AT, 0);
+    }
+
+    /**
+     * The in-app switch. Off cancels the trigger and writes 0, the value SystemUI uses when
+     * Alexa is not in the foreground, so the button shows again right away.
+     */
+    static void setEnabled(Context c, boolean on) {
+        prefs(c).edit().putBoolean(PREF_DISABLED, !on)
+                .remove(PREF_PAUSED_AT).remove(PREF_WRITES).commit();
+        c.getSystemService(NotificationManager.class).cancel(NOTIFICATION_LOOP_ID);
+        if (on) {
+            apply(c, "on");
+            return;
+        }
+        c.getSystemService(JobScheduler.class).cancel(JOB_ID);
+        int before = currentValue(c);
+        boolean wrote = before != 0 && write(c, 0);
+        log(c, System.currentTimeMillis(), "off", before, wrote ? "→0" : "");
     }
 
     /** Last runs, newest first; logcat drops app logs early in boot on this device. */
     static String history(Context c) {
         return prefs(c).getString(PREF_HISTORY, "");
+    }
+
+    private static boolean write(Context c, int value) {
+        if (!hasWritePermission(c)) return false;
+        try {
+            return Settings.Secure.putInt(c.getContentResolver(), KEY, value);
+        } catch (SecurityException e) {
+            Log.w(TAG, "write rejected", e);
+            return false;
+        }
+    }
+
+    private static void log(Context c, long now, String reason, int before, String change) {
+        long uptime = SystemClock.elapsedRealtime();
+        Log.i(TAG, reason + " uptime=" + uptime + "ms before=" + before + change);
+        record(c, String.format(Locale.ROOT, "%tT  +%.1f s  %s  %d%s", now,
+                uptime / 1000.0, shortReason(reason), before, change));
     }
 
     private static void record(Context c, String line) {
@@ -90,6 +147,39 @@ final class Hider {
     private static String shortReason(String reason) {
         int dot = reason.lastIndexOf('.');
         return dot < 0 ? reason : reason.substring(dot + 1);
+    }
+
+    /** Remembers this write; true once LOOP_WRITES of them fall within LOOP_WINDOW_MS. */
+    private static boolean recordWrite(Context c, long now) {
+        SharedPreferences prefs = prefs(c);
+        // Wall-clock, newest first; elapsedRealtime would mix up runs from different boots.
+        StringBuilder sb = new StringBuilder().append(now);
+        int count = 1;
+        long oldest = now;
+        for (String s : prefs.getString(PREF_WRITES, "").split(",")) {
+            if (count == LOOP_WRITES) break;
+            if (s.isEmpty()) continue;
+            long t = Long.parseLong(s);
+            if (t > now) continue; // clock was set back
+            sb.append(',').append(t);
+            oldest = t;
+            count++;
+        }
+        prefs.edit().putString(PREF_WRITES, sb.toString()).commit();
+        return count == LOOP_WRITES && now - oldest < LOOP_WINDOW_MS;
+    }
+
+    /** Switches off without writing 0: whoever keeps resetting the value gets to keep it. */
+    private static void pause(Context c, long now) {
+        prefs(c).edit().putBoolean(PREF_DISABLED, true).putLong(PREF_PAUSED_AT, now).commit();
+        c.getSystemService(JobScheduler.class).cancel(JOB_ID);
+        Log.w(TAG, "value reset " + LOOP_WRITES + " times within " + LOOP_WINDOW_MS + " ms, paused");
+        String text = String.format(Locale.ROOT,
+                "Der Wert wurde %d-mal in %d s zurückgesetzt, zum Beispiel durch die aktivierte "
+                        + "Alexa-App. Die App schreibt nicht mehr, bis du sie öffnest und den "
+                        + "Schalter wieder einschaltest.", LOOP_WRITES, LOOP_WINDOW_MS / 1000);
+        post(c, NOTIFICATION_LOOP_ID, CHANNEL_LOOP_ID, "Schleifenschutz",
+                "Alexa Icon Hider: pausiert", "Der Wert wird ständig zurückgesetzt.", text);
     }
 
     /**
@@ -115,22 +205,9 @@ final class Hider {
         SharedPreferences prefs = prefs(c);
         if (prefs.getBoolean(PREF_NOTIFIED, false)) return;
         Log.w(TAG, "WRITE_SECURE_SETTINGS missing, grant with: " + GRANT_CMD);
-
-        NotificationManager nm = c.getSystemService(NotificationManager.class);
-        nm.createNotificationChannel(new NotificationChannel(
-                CHANNEL_ID, "Berechtigung", NotificationManager.IMPORTANCE_DEFAULT));
-        PendingIntent open = PendingIntent.getActivity(c, 0,
-                new Intent(c, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
-        Notification n = new Notification.Builder(c, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.stat_notify_error)
-                .setContentTitle("Alexa Icon Hider: Berechtigung fehlt")
-                .setContentText("Einmalig per ADB ausführen:")
-                .setStyle(new Notification.BigTextStyle().bigText(
-                        "Einmalig per ADB ausführen:\n" + GRANT_CMD))
-                .setContentIntent(open)
-                .setAutoCancel(true)
-                .build();
-        if (nm.areNotificationsEnabled()) nm.notify(NOTIFICATION_ID, n);
+        post(c, NOTIFICATION_ID, CHANNEL_ID, "Berechtigung",
+                "Alexa Icon Hider: Berechtigung fehlt", "Einmalig per ADB ausführen:",
+                "Einmalig per ADB ausführen:\n" + GRANT_CMD);
         prefs.edit().putBoolean(PREF_NOTIFIED, true).apply();
     }
 
@@ -139,6 +216,25 @@ final class Hider {
         if (!prefs.getBoolean(PREF_NOTIFIED, false)) return;
         c.getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID);
         prefs.edit().remove(PREF_NOTIFIED).apply();
+    }
+
+    /** Tapping it opens the status screen. */
+    private static void post(Context c, int id, String channelId, String channelName,
+            String title, String text, String bigText) {
+        NotificationManager nm = c.getSystemService(NotificationManager.class);
+        nm.createNotificationChannel(new NotificationChannel(
+                channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT));
+        PendingIntent open = PendingIntent.getActivity(c, 0,
+                new Intent(c, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
+        Notification n = new Notification.Builder(c, channelId)
+                .setSmallIcon(android.R.drawable.stat_notify_error)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setStyle(new Notification.BigTextStyle().bigText(bigText))
+                .setContentIntent(open)
+                .setAutoCancel(true)
+                .build();
+        if (nm.areNotificationsEnabled()) nm.notify(id, n);
     }
 
     // Device-protected storage, readable before the user unlocks (LOCKED_BOOT_COMPLETED).

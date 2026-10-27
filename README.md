@@ -6,7 +6,7 @@ Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton
 
 - **Getestet:** Alexa Tablet 12 Pro (ATSPWI), Alexa Tablet UI 16.1.10 (Android 16, API 36), Build SL16SHIP2003.1344N, Fire Launcher (Home UI) 1.0.21178.0, Headless System User Mode mit Nutzer 10, Alexa-App deaktiviert.
 - **Voraussetzung:** Android 16 (minSdk 36). Auf älteren Fire-Tablets mit Fire OS 7 oder 8 lässt sich die App nicht installieren, dort gibt es diesen Launcher auch nicht.
-- **Nicht getestet:** bei aktivierter und genutzter Alexa-App. Dann schreiben SystemUI und diese App abwechselnd denselben Wert.
+- **Nicht getestet:** bei aktivierter und genutzter Alexa-App. Dann schreiben SystemUI und diese App abwechselnd denselben Wert. Gerät das in eine Schleife, schaltet sich die App selbst aus (siehe [Schleifenschutz](#einaus-schalter-und-schleifenschutz)).
 - Ein Software-Update von Amazon kann die Logik von Launcher oder SystemUI ändern. Ob die App noch greift, zeigt ihr Verlauf.
 
 ## Wie es funktioniert
@@ -24,6 +24,12 @@ Wegen des zweiten Resets hat ein einmaliges Setzen direkt nach dem Boot nicht ge
 - **`ResetJob`**: ein JobScheduler-Job, der nur auslöst, wenn sich `content://settings/secure/alexa_app_in_foreground` ändert. Er setzt den Wert wieder auf 1 und plant sich neu. Beobachtet wird die Setting vom System, die App läuft also nur bei einer Änderung. Solche Jobs dürfen keinen Neustart überleben, deshalb plant der `BootReceiver` ihn nach jedem Boot neu.
 
 Den Launcher stoppt die App nicht, das ist auch nicht nötig.
+
+## Ein/Aus-Schalter und Schleifenschutz
+
+Oben in der App gibt es den Schalter „Alexa-Symbol ausblenden“. Beim Ausschalten hebt die App den Änderungs-Trigger auf und setzt `alexa_app_in_foreground` auf 0, den Wert, den auch SystemUI schreibt. Das Symbol erscheint dann sofort wieder. Bis zum Wiedereinschalten schreibt die App nichts mehr, auch nicht nach einem Neustart oder Update. Eine Quick-Settings-Kachel gibt es bewusst nicht.
+
+Der Schleifenschutz greift, wenn ein anderer Prozess den Wert ständig zurücksetzt, zum Beispiel eine aktivierte Alexa-App. Muss die App den Wert **10-mal innerhalb von 60 s** neu setzen, schaltet sie sich selbst aus. Den Wert lässt sie dabei, wie er ist, und zeigt eine Benachrichtigung. Ein normaler Boot braucht zwei Schreibvorgänge. Die Zeitpunkte werden mit der Uhrzeit gespeichert, damit Läufe aus verschiedenen Boots nicht zusammengezählt werden. Zum Fortsetzen schaltest du den Schalter wieder ein, das setzt auch den Zähler zurück.
 
 ## Download
 
@@ -57,7 +63,7 @@ adb shell pm grant --user 10 com.minnallab.alexaiconhider android.permission.WRI
 adb shell pm grant --user 10 com.minnallab.alexaiconhider android.permission.POST_NOTIFICATIONS
 ```
 
-Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb shell am start --user 10 -n com.minnallab.alexaiconhider/.MainActivity`. Eine frisch installierte App ist im Zustand „stopped“ (`stopped=true notLaunched=true`) und erhält bis zum ersten Start keine Boot-Broadcasts. Die App zeigt den Status und die letzten 20 Läufe. Ein MacroDroid-Makro für das Alexa-Symbol kannst du danach löschen.
+Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb shell am start --user 10 -n com.minnallab.alexaiconhider/.MainActivity`. Eine frisch installierte App ist im Zustand „stopped“ (`stopped=true notLaunched=true`) und erhält bis zum ersten Start keine Boot-Broadcasts. Die App zeigt den Ein/Aus-Schalter, den Status und die letzten 20 Läufe. Ein MacroDroid-Makro für das Alexa-Symbol kannst du danach löschen.
 
 **Berechtigungen:**
 
@@ -66,6 +72,8 @@ Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb s
 - `POST_NOTIFICATIONS`: nur für den Hinweis, falls `WRITE_SECURE_SETTINGS` fehlt. Fehlt sie, erscheint der Hinweis nur in der App und im Log.
 
 ## Rückgängig machen
+
+Zum vorübergehenden Abschalten reicht der Schalter in der App. Zum Entfernen:
 
 Erst deinstallieren, dann die Setting löschen. In umgekehrter Reihenfolge würde der Job den gelöschten Wert sofort wieder setzen.
 
@@ -100,12 +108,14 @@ Zeiten in Sekunden seit dem Boot. Die Systemereignisse stammen aus `logcat -b al
 | 2 | +10,06 | +12,9 (0→1) | +17,54 | +18,3 (0→1) | ≤ 0,8 s |
 | 3 | +10,06 | +13,0 (0→1) | +15,61 | +16,3 (0→1) | ≤ 0,7 s |
 | 4 | +10,13 | +13,1 (0→1) | +18,23 | +18,9 (0→1) | ≤ 0,7 s |
+| 5 (1.4) | – | +13,2 (0→1) | +15,34 | +16,1 (0→1) | ≤ 0,8 s |
 
 - Zwischen dem 1. Reset und dem Schreiben der App (etwa 3 s) ist das Tablet noch gesperrt. Die Taskleiste ist dann nicht zu sehen.
 - Die Spalte „sichtbar“ ist eine Obergrenze: Zeit vom Entsperren bis zum Schreiben. Der 2. Reset kommt erst am Ende der Entsperr-Animation, etwa 0,2 s nach `USER_UNLOCKED`, und der Job läuft frühestens 0,5 s danach.
 - Auf dem Startbildschirm (Lawnchair) zeigt der Fire Launcher keine Taskleiste.
 - Boot 1 lief noch mit Version 1.0 ohne Verlauf. Die App startete 0,44 s nach `LOCKED_BOOT_COMPLETED`, am Ende stand `pkg:com.minnallab.alexaiconhider value:1`.
-- Nach allen vier Boots stand `alexa_app_in_foreground` mit `pkg:com.minnallab.alexaiconhider` auf `1`.
+- Boot 5 lief mit Version 1.4. Der Zeitpunkt des 1. Resets ließ sich diesmal nicht im Log finden. Dass er stattfand, zeigt der Wert 0, den die App bei `LOCKED_BOOT_COMPLETED` vorfand. Zwei Schreibvorgänge pro Boot liegen weit unter der Schwelle des Schleifenschutzes, die App blieb eingeschaltet.
+- Nach allen fünf Boots stand `alexa_app_in_foreground` mit `pkg:com.minnallab.alexaiconhider` auf `1`.
 
 ### Weitere Tests
 
@@ -118,6 +128,9 @@ Zeiten in Sekunden seit dem Boot. Die Systemereignisse stammen aus `logcat -b al
 | RAM (`dumpsys meminfo`), ohne Oberfläche | 4,7 MB PSS direkt nach einem Lauf, 4,4 MB nach 30 s (davon 3,5 MB in zram), Prozess im Cache (`oom_score_adj` 915) |
 | RAM, während die App geöffnet ist | 32 MB PSS, nur solange die Oberfläche angezeigt wird |
 | Wakelocks (`dumpsys power`) | keine eigenen, `count=0`. Nur die kurzen Wakelocks, die das System während eines Jobs bzw. Starts hält (`*job*r/…`, `*launch*`, wenige ms) |
+| Schalter aus / ein (1.4) | Aus: Wert 1→0, Trigger abgemeldet, Wert bleibt 0. Ein: Wert 0→1 innerhalb von 2 s, Trigger wieder geplant |
+| Schleifenschutz (1.4): `settings put … 0` alle 1,5 s | Nach dem 10. Schreiben der App ausgeschaltet (zwei Läufe), Wert bleibt danach 0, Benachrichtigung erscheint. Eine offene App zeigt das ohne Neustart an |
+| Update im ausgeschalteten Zustand (1.4) | `MY_PACKAGE_REPLACED` läuft mit `aus` und schreibt nichts, der Grund bleibt in der App sichtbar |
 | `WRITE_SECURE_SETTINGS` fehlt | kein Absturz, genau eine Benachrichtigung mit dem `pm grant`-Befehl. Nach erneutem Erteilen und Öffnen ist sie weg und der Wert wieder 1 |
 | APK-Größe | 15.476 Bytes (Release 1.3, R8, v2-signiert) |
 | Standby-Bucket | 10 (ACTIVE) direkt nach den Tests |

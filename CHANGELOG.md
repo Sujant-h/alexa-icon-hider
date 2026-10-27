@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4 (versionCode 5), unveröffentlicht
+
+- Ein/Aus-Schalter in der App. „Aus“ hebt den Änderungs-Trigger auf und setzt `alexa_app_in_foreground` auf 0, das Symbol erscheint sofort wieder. Der Zustand übersteht Neustarts und Updates.
+- Schleifenschutz: Muss die App den Wert 10-mal innerhalb von 60 s neu setzen, schaltet sie sich selbst aus und meldet das per Benachrichtigung. Den Wert lässt sie dabei, wie er ist. Mit dem Schalter geht es weiter.
+- Der Verlauf zeigt ausgeschaltete Läufe mit `aus` und das automatische Ausschalten mit `pausiert`.
+- Die Statusanzeige aktualisiert sich, solange die App offen ist, sobald sich der Wert ändert.
+
 ## 1.3 (versionCode 4), 27.10.2026
 
 Erste veröffentlichte Version.
