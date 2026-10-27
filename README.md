@@ -2,7 +2,12 @@
 
 Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton`) in der Taskleiste des Fire Launchers dauerhaft aus. Root ist nicht nötig, und MacroDroid wird damit überflüssig. Die APK ist rund 15 KB groß und kommt ohne AndroidX und ohne Bibliotheken aus. Sie läuft ohne Dienst, ohne Polling und ohne Wakelocks.
 
-Getestet am 27.10.2026 auf: Alexa Tablet 12 Pro (ATSPWI), Alexa Tablet UI 16.1.10 (Android 16, API 36), Build SL16SHIP2003.1344N, Fire Launcher (Home UI) 1.0.21178.0, Headless System User Mode mit Nutzer 10.
+## Kompatibilität
+
+- **Getestet:** Alexa Tablet 12 Pro (ATSPWI), Alexa Tablet UI 16.1.10 (Android 16, API 36), Build SL16SHIP2003.1344N, Fire Launcher (Home UI) 1.0.21178.0, Headless System User Mode mit Nutzer 10, Alexa-App deaktiviert.
+- **Voraussetzung:** Android 16 (minSdk 36). Auf älteren Fire-Tablets mit Fire OS 7 oder 8 lässt sich die App nicht installieren, dort gibt es diesen Launcher auch nicht.
+- **Nicht getestet:** bei aktivierter und genutzter Alexa-App. Dann schreiben SystemUI und diese App abwechselnd denselben Wert.
+- Ein Software-Update von Amazon kann die Logik von Launcher oder SystemUI ändern. Ob die App noch greift, zeigt ihr Verlauf.
 
 ## Wie es funktioniert
 
@@ -20,12 +25,28 @@ Wegen des zweiten Resets hat ein einmaliges Setzen direkt nach dem Boot nicht ge
 
 Den Launcher stoppt die App nicht, das ist auch nicht nötig.
 
-## Installation
+## Download
 
-Voraussetzung: `adb` mit USB- oder WLAN-Debugging, das Tablet ist mit Nutzer 10 angemeldet.
+Die signierte APK liegt bei den Releases als `alexa-icon-hider-<version>.apk`. Die SHA-256-Prüfsumme jeder Version steht im [CHANGELOG](CHANGELOG.md).
 
 ```bash
-adb install --user 10 alexa-icon-hider/app/build/outputs/apk/release/app-release.apk
+sha256sum alexa-icon-hider-1.3.apk
+```
+
+Unter Windows geht das mit `certutil -hashfile alexa-icon-hider-1.3.apk SHA256`. Alle Versionen sind mit demselben Schlüssel signiert. Updates installieren sich nur, wenn der Schlüssel übereinstimmt. Fingerabdruck des Signaturzertifikats (`CN=minnallab`):
+
+```
+SHA-256: 24b85f093c4ddda288d8be50cd7484a7cbc04477fcfc2cd4db19a2ab5f21d33e
+```
+
+Prüfen lässt er sich mit `apksigner verify --print-certs alexa-icon-hider-1.3.apk` aus den Android Build-Tools.
+
+## Installation
+
+Voraussetzung: `adb` mit USB- oder WLAN-Debugging. Auf dem Alexa Tablet 12 Pro ist dein Nutzer die 10, das zeigt `adb shell am get-current-user`. Auf anderen Geräten ersetzt du `10` in allen Befehlen durch diese Zahl.
+
+```bash
+adb install --user 10 alexa-icon-hider-1.3.apk
 ```
 
 ```bash
@@ -59,8 +80,10 @@ Das Symbol erscheint danach sofort wieder.
 Java 17 Bytecode, AGP 9.4.1, Gradle 9.7.1 (Wrapper mit SHA-256), compileSdk/targetSdk/minSdk 36, R8 mit `isMinifyEnabled` und `isShrinkResources`. Das in AGP 9 eingebaute Kotlin ist abgeschaltet (`android.builtInKotlin=false`). Sonst kämen die Kotlin-Stdlib und 12 KB Builtins in die APK.
 
 ```bash
-cd alexa-icon-hider && ./gradlew assembleRelease
+./gradlew assembleRelease
 ```
+
+Die APK liegt danach unter `app/build/outputs/apk/release/app-release.apk`.
 
 - JDK 17 oder neuer, getestet mit der JBR 25 von Android Studio.
 - `local.properties` mit `sdk.dir` (nicht im Repo).
@@ -96,9 +119,13 @@ Zeiten in Sekunden seit dem Boot. Die Systemereignisse stammen aus `logcat -b al
 | RAM, während die App geöffnet ist | 32 MB PSS, nur solange die Oberfläche angezeigt wird |
 | Wakelocks (`dumpsys power`) | keine eigenen, `count=0`. Nur die kurzen Wakelocks, die das System während eines Jobs bzw. Starts hält (`*job*r/…`, `*launch*`, wenige ms) |
 | `WRITE_SECURE_SETTINGS` fehlt | kein Absturz, genau eine Benachrichtigung mit dem `pm grant`-Befehl. Nach erneutem Erteilen und Öffnen ist sie weg und der Wert wieder 1 |
-| APK-Größe | 15.404 Bytes (Release, R8, v2-signiert) |
+| APK-Größe | 15.476 Bytes (Release 1.3, R8, v2-signiert) |
 | Standby-Bucket | 10 (ACTIVE) direkt nach den Tests |
 
 Noch nicht über mehrere Tage beobachtet: ob der Content-Trigger-Job in einem niedrigeren Standby-Bucket verzögert wird, und ob spätere Entsperrungen wirklich nicht mehr zurücksetzen (laut Code nicht). Beides zeigt der Verlauf in der App.
 
 Ein **Content-Trigger** wartet ohne `setTriggerContentUpdateDelay(0)` etwa 10 s auf Ruhe, bevor der Job startet (gemessen). Mit `0` greift die Untergrenze des Systems von etwa 0,5 s.
+
+## Lizenz
+
+[MIT](LICENSE), © 2026 minnallab. Nicht mit Amazon verbunden. „Alexa“ und „Fire“ sind Marken von Amazon.com, Inc. oder verbundenen Unternehmen.
