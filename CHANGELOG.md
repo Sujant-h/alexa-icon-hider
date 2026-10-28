@@ -5,6 +5,7 @@ Notable changes per release. Each heading matches `versionName` in `app/build.gr
 ## Unreleased
 
 - The status screen notices by itself when an `adb` command from it has been run: the command disappears, the Alexa icon is hidden right away, and a confirmation says what, if anything, is left to do. No need to reopen the app.
+- New "System updates" section: shows whether Amazon's update client is on and the `adb` command to turn it off or back on. Apps cannot be granted the permission to do this themselves, so it stays a copyable command. Turning updates off also stops security updates.
 
 ## 1.5-beta.1 (versionCode 6), 2026-10-27
 

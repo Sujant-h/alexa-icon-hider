@@ -5,7 +5,11 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.BroadcastReceiver;
 import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.ContentObserver;
@@ -14,6 +18,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PatternMatcher;
 import android.provider.Settings;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -53,6 +58,10 @@ public final class MainActivity extends Activity {
     private Switch telemetryToggle;
     private Button resetAdId;
     private TextView adIdValue;
+    private TextView otaText, otaCommand;
+    private Button otaCopy;
+    // As last shown, so only a change made while the screen is open gives haptic feedback.
+    private Boolean shownOtaDisabled;
     private boolean shown;
     // The history is for diagnosis, so it starts closed each time the screen is opened.
     private boolean historyOpen;
@@ -68,6 +77,14 @@ public final class MainActivity extends Activity {
         @Override
         public void onChange(boolean selfChange) {
             showStatus();
+        }
+    };
+
+    // pm enable / disable-user sends PACKAGE_CHANGED, so the OTA row follows adb without polling.
+    private final BroadcastReceiver otaReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            showOta();
         }
     };
 
@@ -125,7 +142,11 @@ public final class MainActivity extends Activity {
             showStatus();
         });
         command = findViewById(R.id.command);
-        copy.setOnClickListener(v -> copyCommand());
+        copy.setOnClickListener(v -> copyCommand(copy, command, resetCopy));
+        otaText = findViewById(R.id.ota_text);
+        otaCommand = findViewById(R.id.ota_command);
+        otaCopy = findViewById(R.id.ota_copy);
+        otaCopy.setOnClickListener(v -> copyCommand(otaCopy, otaCommand, resetOtaCopy));
         ((TextView) findViewById(R.id.version)).setText("v" + versionName());
 
         telemetryToggle = findViewById(R.id.telemetry_toggle);
@@ -173,6 +194,10 @@ public final class MainActivity extends Activity {
         showStatus();
         getContentResolver().registerContentObserver(
                 Settings.Secure.getUriFor(Hider.KEY), false, observer);
+        IntentFilter changed = new IntentFilter(Intent.ACTION_PACKAGE_CHANGED);
+        changed.addDataScheme("package");
+        changed.addDataSchemeSpecificPart(Ota.PACKAGE, PatternMatcher.PATTERN_LITERAL);
+        registerReceiver(otaReceiver, changed, RECEIVER_NOT_EXPORTED);
     }
 
     @Override
@@ -180,6 +205,7 @@ public final class MainActivity extends Activity {
         super.onPause();
         resumed = false;
         getContentResolver().unregisterContentObserver(observer);
+        unregisterReceiver(otaReceiver);
         callout.removeCallbacks(watch);
         pulse.cancel();
     }
@@ -329,6 +355,7 @@ public final class MainActivity extends Activity {
                 exempt ? accent : on ? warn : subtle);
         showHistory();
         showPrivacy();
+        showOta();
     }
 
     /** Says that the command worked and what, if anything, is left to do. */
@@ -444,15 +471,38 @@ public final class MainActivity extends Activity {
     }
 
     /** Android 13+ confirms the copy itself, so the button only changes its label. */
-    private void copyCommand() {
+    private void copyCommand(Button button, TextView source, Runnable reset) {
         getSystemService(ClipboardManager.class)
-                .setPrimaryClip(ClipData.newPlainText("adb", command.getText()));
-        copy.setText(R.string.copied);
-        copy.removeCallbacks(resetCopy);
-        copy.postDelayed(resetCopy, 2000);
+                .setPrimaryClip(ClipData.newPlainText("adb", source.getText()));
+        button.setText(R.string.copied);
+        button.removeCallbacks(reset);
+        button.postDelayed(reset, 2000);
     }
 
     private final Runnable resetCopy = () -> copy.setText(R.string.copy);
+    private final Runnable resetOtaCopy = () -> otaCopy.setText(R.string.copy);
+
+    /** Off is the warning here: that is the state without security updates. */
+    private void showOta() {
+        Boolean disabled = Ota.isDisabled(this);
+        if (disabled == null) {
+            setRow(R.id.ota_dot, R.id.ota_value, getString(R.string.ota_missing),
+                    getColor(R.color.subtle));
+            findViewById(R.id.ota_command_block).setVisibility(View.GONE);
+            shownOtaDisabled = null;
+            return;
+        }
+        setRow(R.id.ota_dot, R.id.ota_value,
+                getString(disabled ? R.string.ota_off : R.string.ota_on),
+                getColor(disabled ? R.color.warn : R.color.accent));
+        findViewById(R.id.ota_command_block).setVisibility(View.VISIBLE);
+        otaText.setText(disabled ? R.string.ota_text_off : R.string.ota_text_on);
+        otaCommand.setText(Ota.command(!disabled));
+        if (shownOtaDisabled != null && shownOtaDisabled != disabled) {
+            otaCommand.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+        }
+        shownOtaDisabled = disabled;
+    }
 
     private void setPrivacyBusy(boolean busy) {
         telemetryToggle.setEnabled(!busy);

@@ -79,6 +79,22 @@ Danach **„Alexa Icon Hider“ einmal öffnen**, auf dem Tablet oder per `adb s
 - `RECEIVE_BOOT_COMPLETED`: wird bei der Installation automatisch erteilt, Android verlangt sie für Boot-Broadcasts.
 - `POST_NOTIFICATIONS`: für den Hinweis, falls `WRITE_SECURE_SETTINGS` fehlt, und für den Schleifenschutz. Fehlt sie, erscheint der Hinweis nur in der App und im Log. Wird sie später erteilt, kommt die Benachrichtigung beim nächsten Lauf nach.
 
+## Systemupdates (optional)
+
+Unter „Systemupdates“ zeigt die App, ob Amazons Update-Client (`com.amazon.device.software.ota`) aktiv ist, und daneben den passenden Befehl zum Kopieren. Abschalten kann sie ihn nicht selbst: Dafür bräuchte sie `CHANGE_COMPONENT_ENABLED_STATE`, und diese Berechtigung lässt sich per adb nicht erteilen („managed by role“). Einen Schalter in den Einstellungen, den die App setzen könnte, hat der Update-Client auch nicht.
+
+```bash
+adb shell pm disable-user --user 10 com.amazon.device.software.ota
+```
+
+Damit bekommt das Tablet **keine Sicherheitsupdates mehr**. Wieder einschalten geht so:
+
+```bash
+adb shell pm enable --user 10 com.amazon.device.software.ota
+```
+
+Die Anzeige folgt dem Befehl ohne Polling. Android meldet die Änderung als `PACKAGE_CHANGED`, und darauf hört die App, solange sie im Vordergrund ist.
+
 ## Rückgängig machen
 
 Zum vorübergehenden Abschalten reicht der Schalter in der App. Zum Entfernen:

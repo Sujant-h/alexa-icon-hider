@@ -104,6 +104,15 @@
     <string name="reset_ad_title">Advertising ID</string>
     <string name="reset_ad_key" translatable="false">advertising_id</string>
     <string name="reset_ad_action">Reset</string>
+    <string name="privacy_pact_note">App usage, device optimization and device usage data are set in Settings › Amazon › Amazon privacy settings.</string>
     <string name="blocked">blocked</string>
     <string name="allowed">allowed</string>
+    <string name="section_updates">System updates</string>
+    <string name="row_ota">Amazon updates</string>
+    <string name="row_ota_key" translatable="false">com.amazon.device.software.ota</string>
+    <string name="ota_on">on</string>
+    <string name="ota_off">off</string>
+    <string name="ota_missing">not found</string>
+    <string name="ota_text_on">Amazon installs system updates automatically, including security updates. Android does not let apps switch this off, so it only works with adb. Run this command to stop the updates:</string>
+    <string name="ota_text_off">Updates are off: no new security fixes until you turn them back on. Before a manual update in Settings, run this command:</string>
 </resources>

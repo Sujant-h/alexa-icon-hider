@@ -92,6 +92,14 @@
     <string name="row_dtcp">Geräte-Targeting</string>
     <string name="reset_ad_title">Werbe-ID</string>
     <string name="reset_ad_action">Zurücksetzen</string>
+    <string name="privacy_pact_note">App-Nutzungs-, Geräteoptimierungs- und Gerätenutzungsdaten stellst du unter Einstellungen › Amazon › Amazon-Datenschutzeinstellungen ein.</string>
     <string name="blocked">blockiert</string>
     <string name="allowed">erlaubt</string>
+    <string name="section_updates">Systemupdates</string>
+    <string name="row_ota">Amazon-Updates</string>
+    <string name="ota_on">an</string>
+    <string name="ota_off">aus</string>
+    <string name="ota_missing">nicht gefunden</string>
+    <string name="ota_text_on">Amazon installiert Systemupdates automatisch, auch Sicherheitsupdates. Android erlaubt Apps nicht, das abzuschalten, deshalb geht es nur per adb. Mit diesem Befehl stoppst du die Updates:</string>
+    <string name="ota_text_off">Updates sind aus. Bis du sie wieder einschaltest, kommen keine neuen Sicherheitskorrekturen. Vor einem manuellen Update in den Einstellungen führst du diesen Befehl aus:</string>
 </resources>
