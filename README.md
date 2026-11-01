@@ -2,6 +2,16 @@
 
 Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton`) in der Taskleiste des Fire Launchers dauerhaft aus. Root ist nicht nötig, und MacroDroid wird damit überflüssig. Die APK ist rund 57 KB groß und kommt ohne AndroidX und ohne Bibliotheken aus. Sie läuft ohne Dienst, ohne Polling und ohne Wakelocks.
 
+## Screenshots
+
+Der Statusbildschirm nach der Einrichtung (Berechtigung und Ausnahme für ungenutzte Apps erteilt):
+
+![Statusbildschirm](docs/screenshots/status-screen.png)
+
+Der Verlauf mit den Läufen seit dem Neustart:
+
+![Verlauf](docs/screenshots/history.png)
+
 ## Kompatibilität
 
 - **Getestet:** Alexa Tablet 12 Pro (ATSPWI), Alexa Tablet UI 16.1.10 (Android 16, API 36), Build SL16SHIP2003.1344N, Fire Launcher (Home UI) 1.0.21178.0, Headless System User Mode mit Nutzer 10, Alexa-App deaktiviert.
@@ -30,6 +40,14 @@ Den Launcher stoppt die App nicht, das ist auch nicht nötig.
 Oben in der App gibt es den Schalter „Alexa-Symbol ausblenden“. Beim Ausschalten hebt die App den Änderungs-Trigger auf und setzt `alexa_app_in_foreground` auf 0, den Wert, den auch SystemUI schreibt. Das Symbol erscheint dann sofort wieder. Bis zum Wiedereinschalten schreibt die App nichts mehr, auch nicht nach einem Neustart oder Update. Eine Quick-Settings-Kachel gibt es bewusst nicht.
 
 Der Schleifenschutz greift, wenn ein anderer Prozess den Wert ständig zurücksetzt, zum Beispiel eine aktivierte Alexa-App. Muss die App den Wert **10-mal innerhalb von 60 s** neu setzen, schaltet sie sich selbst aus. Den Wert lässt sie dabei, wie er ist, und zeigt eine Benachrichtigung. Ein normaler Boot braucht zwei Schreibvorgänge. Die Zeitpunkte werden mit der Uhrzeit gespeichert, damit Läufe aus verschiedenen Boots nicht zusammengezählt werden. Zum Fortsetzen schaltest du den Schalter wieder ein, das setzt auch den Zähler zurück.
+
+## Datenschutz
+
+Der Schalter **„Werbung & Tracking deaktivieren“** im unteren Bereich schreibt `limit_ad_tracking` (Secure) und `IS_DTCP_ENABLED` (Global), die Werte, die der Ads-Stack des Fire Launchers (`AdsContextProvider`) live liest. Das geht über Amazons eigenen Werbe-ID-Dienst (`com.amazon.adidmanager`), denselben, den auch die Einstellungs-App nutzt: der Dienst meldet die Änderung an das Werbe-Backend und erneuert die Werbe-IDs pro App. Beim Einschalten wird zusätzlich die Werbe-ID einmal zurückgesetzt; Amazons Richtlinie verbietet es Apps, alte Daten auf eine neue ID zu übertragen, das trennt also das bisher gesammelte Profil ab. Fehlt der Dienst, schreibt die App `advertising_id` selbst.
+
+Anders als der Alexa-Schlüssel setzt SystemUI diese Werte beim Boot **nicht** zurück, daher reicht ein einmaliges Schreiben beim Umschalten, Boot und Update — kein Änderungs-Trigger und kein Schleifenschutz. Solange der Schalter aus ist, schreibt die App nichts und lässt die eigenen Einstellungen des Nutzers in den Amazon-Einstellungen in Ruhe. Beim Ausschalten stellt sie die Werte wieder her, die beim Einschalten galten — außer ein Schlüssel wurde in der Zwischenzeit in den Einstellungen geändert, der bleibt unangetastet. `amz_limit_ad_tracking` und `non_amz_limit_ad_tracking` existieren ebenfalls, setzt der Dienst aber nur auf 0 zurück; auf dem Gerät liest sie nichts.
+
+Die Datenschutz-Schalter brauchen dieselbe `WRITE_SECURE_SETTINGS`-Berechtigung wie der Hauptschalter. Bis sie erteilt ist, bleiben sie deaktiviert, statt einen Zustand vorzugaukeln, den die App nicht schreiben kann.
 
 ## Download
 

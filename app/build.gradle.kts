@@ -25,8 +25,8 @@ android {
         applicationId = "com.minnallab.alexaiconhider"
         minSdk = 36
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.5-beta.1"
+        versionCode = 7
+        versionName = "1.5"
     }
 
     // English is the default (res/resources.properties); values-de/ adds German. The generated

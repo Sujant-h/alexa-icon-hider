@@ -47,9 +47,9 @@ final class AmazonAdId {
     private AmazonAdId() {}
 
     /**
-     * Binds, runs the calls on the main thread, unbinds and then runs done exactly once.
-     * If the service is not there, done(false) runs right away, so the caller falls back to
-     * writing the settings itself.
+     * Binds, runs the calls on a background thread, unbinds and then runs done exactly once,
+     * on the main thread. If the service is not there, done(false) runs right away, so the
+     * caller falls back to writing the settings itself.
      */
     static void call(Context c, Calls calls, Done done) {
         Connection conn = new Connection(c.getApplicationContext(), calls, done);
@@ -73,8 +73,10 @@ final class AmazonAdId {
     private static final class Connection implements ServiceConnection {
         final Context app;
         final Handler main = new Handler(Looper.getMainLooper());
+        // Covers both "the service never connected" and "a transact hung": finish(false) runs
+        // on the main thread either way, so the caller is not left waiting on the service.
         final Runnable timeout = () -> {
-            Log.w(TAG, "service did not answer");
+            Log.w(TAG, "service did not answer in time");
             finish(false);
         };
         private final Calls calls;
@@ -90,14 +92,21 @@ final class AmazonAdId {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             if (finished) return;
-            boolean ran = false;
-            try {
-                calls.run(service);
-                ran = true;
-            } catch (RemoteException | RuntimeException e) {
-                Log.w(TAG, "call failed", e);
-            }
-            finish(ran);
+            // transact() is a blocking two-way call. Run it off the main thread so a slow or
+            // hung service cannot block the UI; the timeout still fires on the main handler.
+            Thread t = new Thread(() -> {
+                boolean result = false;
+                try {
+                    calls.run(service);
+                    result = true;
+                } catch (RemoteException | RuntimeException e) {
+                    Log.w(TAG, "call failed", e);
+                }
+                final boolean ran = result;
+                main.post(() -> finish(ran));
+            }, "AmazonAdId");
+            t.setDaemon(true);
+            t.start();
         }
 
         @Override

@@ -69,7 +69,7 @@
     <string name="reason_activity">App geöffnet</string>
     <string name="reason_on">Eingeschaltet</string>
     <string name="reason_off">Ausgeschaltet</string>
-    <string name="reason_trigger">Wert geändert</string>
+    <string name="reason_trigger">Alexa-Symbol ausgeblendet</string>
     <string name="reason_locked_boot">Boot, gesperrt</string>
     <string name="reason_boot">Boot</string>
     <string name="reason_update">Update</string>

@@ -2,9 +2,13 @@
 
 Notable changes per release. Each heading matches `versionName` in `app/build.gradle.kts`, and the section becomes the GitHub release notes.
 
-## Unreleased
+## 1.5 (versionCode 7), 2026-11-02
 
-- The status screen notices by itself when an `adb` command from it has been run: the command disappears, the Alexa icon is hidden right away, and a confirmation says what, if anything, is left to do. No need to reopen the app.
+- **Privacy: disable ads & tracking.** A new "Disable ads & tracking" switch writes `limit_ad_tracking` (Secure) and `IS_DTCP_ENABLED` (Global) and resets the advertising ID. It goes through Amazon's own ad id service (`com.amazon.adidmanager`), like the Settings app, so the ad backend is notified and the per-app ad ids are renewed too. Switching off restores the previous values, but leaves alone any key you changed in Settings meanwhile. If the service is missing, the app falls back to writing `advertising_id` itself.
+- **The status screen notices `adb` commands by itself.** While a command from the screen is shown, the app checks once a second (never in the background). Once it works, the command disappears, the Alexa icon is hidden right away, and a confirmation says what, if anything, is left to do.
+- **Clearer history.** The reason column now reads "Alexa icon hidden" instead of "Value changed".
+- Unit tests for the loop guard, the history trimming and the history line format, uploaded as a test report when CI fails.
+- Verified on the Alexa Tablet 12 Pro, not only in the emulator.
 
 ## 1.5-beta.1 (versionCode 6), 2026-10-27
 
