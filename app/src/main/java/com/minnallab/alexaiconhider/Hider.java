@@ -68,7 +68,7 @@ final class Hider {
                 + " && dumpsys deviceidle whitelist +com.minnallab.alexaiconhider\"";
     }
 
-    static int userId() {
+    private static int userId() {
         return Process.myUid() / PER_USER_RANGE;
     }
 
