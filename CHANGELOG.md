@@ -2,6 +2,10 @@
 
 Notable changes per release. Each heading matches `versionName` in `app/build.gradle.kts`, and the section becomes the GitHub release notes.
 
+## Unreleased
+
+- The status screen notices by itself when an `adb` command from it has been run: the command disappears, the Alexa icon is hidden right away, and a confirmation says what, if anything, is left to do. No need to reopen the app.
+
 ## 1.5-beta.1 (versionCode 6), 2026-10-27
 
 First public release.

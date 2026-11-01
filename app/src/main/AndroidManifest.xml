@@ -11,6 +11,11 @@
     <!-- Only used for the one-time "permission missing" notification. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Amazon's ad id service, which the privacy toggle calls like the Settings app does. -->
+    <queries>
+        <package android:name="com.amazon.adidmanager" />
+    </queries>
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"

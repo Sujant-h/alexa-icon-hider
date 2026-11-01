@@ -16,6 +16,7 @@ public final class BootReceiver extends BroadcastReceiver {
                 || Intent.ACTION_BOOT_COMPLETED.equals(action)
                 || Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)) {
             Hider.apply(context, action);
+            Telemetry.apply(context, action);
         }
     }
 }

@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # beta collects changes for testing; each run uploads its debug APK, see below.
+    branches: [main, beta]
   pull_request:
   workflow_dispatch:
 
@@ -31,7 +32,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
 
       # Release is built unsigned here, so R8 and resource shrinking are checked on every push.
-      - run: ./gradlew --no-daemon lintDebug assembleDebug assembleRelease
+      - run: ./gradlew --no-daemon lintDebug testDebugUnitTest assembleDebug assembleRelease
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: test-report
+          path: app/build/reports/tests/testDebugUnitTest/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
@@ -41,9 +50,19 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      # Named after version and commit, so downloads from different runs can be told apart.
+      - name: Name the debug APK
+        id: apk
+        run: |
+          version="$(grep -m1 -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)"
+          apk="alexa-icon-hider-${version}-${GITHUB_SHA::7}-debug.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$apk"
+          echo "path=$apk" >> "$GITHUB_OUTPUT"
+
+      # Not zipped, so the download is the APK itself; the artifact takes the file's name.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.apk.outputs.path }}
+          archive: false
           if-no-files-found: error
           retention-days: 14

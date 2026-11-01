@@ -15,5 +15,7 @@
     <color name="warn">#B45309</color>
     <color name="warn_soft">#FFFBEB</color>
     <color name="warn_line">#FDE68A</color>
+    <color name="ok_soft">#F0FDFA</color>
+    <color name="ok_line">#99F6E4</color>
     <color name="ripple">#14000000</color>
 </resources>

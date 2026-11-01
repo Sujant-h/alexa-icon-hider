@@ -62,3 +62,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
+
+// Plain JVM tests for the Android-free logic in Hider; nothing of this ends up in the APK.
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+}
