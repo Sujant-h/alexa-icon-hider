@@ -75,7 +75,7 @@
     <string name="reason_activity">App opened</string>
     <string name="reason_on">Switched on</string>
     <string name="reason_off">Switched off</string>
-    <string name="reason_trigger">Value changed</string>
+    <string name="reason_trigger">Alexa icon hidden</string>
     <string name="reason_locked_boot">Boot, locked</string>
     <string name="reason_boot">Boot</string>
     <string name="reason_update">Update</string>

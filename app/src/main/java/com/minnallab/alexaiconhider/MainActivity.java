@@ -57,6 +57,8 @@ public final class MainActivity extends Activity {
     // The history is for diagnosis, so it starts closed each time the screen is opened.
     private boolean historyOpen;
     private boolean resumed;
+    private boolean destroyed;
+    private boolean privacyBusy;
     // As last shown, to tell a command that just worked from one that was never needed.
     // Null until the first showStatus(), so opening the screen confirms nothing.
     private Boolean shownWrite, shownExempt;
@@ -189,6 +191,12 @@ public final class MainActivity extends Activity {
     protected void onStop() {
         super.onStop();
         confirm.setVisibility(View.GONE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        destroyed = true;
     }
 
     @Override
@@ -455,16 +463,27 @@ public final class MainActivity extends Activity {
     private final Runnable resetCopy = () -> copy.setText(R.string.copy);
 
     private void setPrivacyBusy(boolean busy) {
-        telemetryToggle.setEnabled(!busy);
-        resetAdId.setEnabled(!busy);
+        privacyBusy = busy;
+        updatePrivacyControls();
+    }
+
+    /** The privacy controls write Secure/Global settings, so they need the same permission
+     * as the main toggle. Until it is granted they stay disabled instead of appearing to
+     * work while nothing is written. */
+    private void updatePrivacyControls() {
+        boolean writable = Telemetry.hasWritePermission(this);
+        telemetryToggle.setEnabled(writable && !privacyBusy);
+        resetAdId.setEnabled(writable && !privacyBusy);
     }
 
     private void privacyDone() {
+        if (destroyed) return;
         setPrivacyBusy(false);
         showPrivacy();
     }
 
     private void showPrivacy() {
+        updatePrivacyControls();
         boolean on = Telemetry.isEnabled(this);
         int track = Telemetry.currentTrack(this);
         int dtcp = Telemetry.currentDtcp(this);
