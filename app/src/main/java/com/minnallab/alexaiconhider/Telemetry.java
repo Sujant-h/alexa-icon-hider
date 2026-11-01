@@ -18,7 +18,8 @@ import java.util.UUID;
  * is enough: no change-trigger job and no loop guard.
  *
  * While off we never write, so boot and updates leave the user's own choice in Settings
- * alone. Switching off restores the values that were there when the user switched on.
+ * alone. Switching off restores the values that were there when the user switched on, except
+ * for a key the user changed in Settings meanwhile, which is left alone.
  *
  * Switching on also resets the advertising id once. Amazon's policy forbids apps to carry
  * earlier data over to a new id, so this cuts the profile collected so far. We do not rotate
@@ -48,9 +49,9 @@ final class Telemetry {
     }
 
     /**
-     * On saves the current values first and resets the advertising id; off writes the saved
-     * values back and forgets them. Only the user's tap gets here, never boot or update.
-     * The service answers asynchronously, so done runs once everything is written.
+     * On saves the current values first and resets the advertising id; off restores the saved
+     * values it still owns and forgets them. Only the user's tap gets here, never boot or
+     * update. The service answers asynchronously, so done runs once everything is written.
      */
     static void setEnabled(Context c, boolean on, Runnable done) {
         SharedPreferences p = prefs(c);
@@ -62,8 +63,12 @@ final class Telemetry {
         }
         p.edit().putBoolean(PREF_DISABLED, on).commit();
         boolean restore = on || p.contains(PREF_SAVED_TRACK);
-        int track = on ? 1 : p.getInt(PREF_SAVED_TRACK, 0);
-        int dtcp = on ? 0 : p.getInt(PREF_SAVED_DTCP, 1);
+        // On writes the blocked values. Off restores the saved values, but only for the keys
+        // the app still holds: one the user changed in Settings since we set it is left alone.
+        int track = on ? 1
+                : currentTrack(c) == 1 ? p.getInt(PREF_SAVED_TRACK, 0) : currentTrack(c);
+        int dtcp = on ? 0
+                : currentDtcp(c) == 0 ? p.getInt(PREF_SAVED_DTCP, 1) : currentDtcp(c);
         if (!on) {
             p.edit().remove(PREF_SAVED_TRACK).remove(PREF_SAVED_DTCP).commit();
         }

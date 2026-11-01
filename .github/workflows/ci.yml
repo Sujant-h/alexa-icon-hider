@@ -54,7 +54,7 @@ jobs:
       - name: Name the debug APK
         id: apk
         run: |
-          version="$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' app/build.gradle.kts)"
+          version="$(grep -m1 -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)"
           apk="alexa-icon-hider-${version}-${GITHUB_SHA::7}-debug.apk"
           cp app/build/outputs/apk/debug/app-debug.apk "$apk"
           echo "path=$apk" >> "$GITHUB_OUTPUT"
