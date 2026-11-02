@@ -88,11 +88,15 @@ A freshly installed app is in the "stopped" state and receives no boot broadcast
 
 ## Uninstall
 
-```bash
-adb shell "pm uninstall --user 10 com.minnallab.alexaiconhider && settings delete --user 10 secure alexa_app_in_foreground; dumpsys deviceidle whitelist -com.minnallab.alexaiconhider"
-```
+Uninstall it like any other app: **Settings → Apps → Alexa Icon Hider → Uninstall**, or long-press the app icon and choose **Uninstall**.
 
-The Alexa button reappears immediately afterwards.
+If the switch is still on when you uninstall, the Alexa button returns after the next restart — or turn the switch off first to bring it back right away.
+
+Alternatively, uninstall via adb:
+
+```bash
+adb shell pm uninstall --user 10 com.minnallab.alexaiconhider
+```
 
 ## License
 
