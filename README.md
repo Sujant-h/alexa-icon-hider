@@ -4,12 +4,19 @@ Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton
 
 ## Screenshots
 
-Das Alexa-Widget in der Taskleiste, mit und ohne aktivierten Schalter, in beiden Ausrichtungen:
+Der Statusbildschirm der App nach der Einrichtung:
+
+![Statusbildschirm](docs/screenshots/status-screen.png)
+
+Der Verlauf mit den Läufen seit dem Neustart:
+
+![Verlauf](docs/screenshots/history.png)
+
+Das Alexa-Widget in der Taskleiste, mit und ohne aktivierten Schalter:
 
 | Mit Widget | Ohne Widget |
 |:---:|:---:|
-| ![Mit Widget, Querformat](docs/screenshots/with-widget-landscape.png) | ![Ohne Widget, Querformat](docs/screenshots/without-widget-landscape.png) |
-| ![Mit Widget, Hochformat](docs/screenshots/with-widget-portrait.png) | ![Ohne Widget, Hochformat](docs/screenshots/without-widget-portrait.png) |
+| ![Mit Widget](docs/screenshots/screenshot_with_widget.png) | ![Ohne Widget](docs/screenshots/screenshot_without_widget.png) |
 
 ## Kompatibilität
 
