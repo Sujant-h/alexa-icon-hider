@@ -4,6 +4,8 @@ Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton
 
 ## Screenshots
 
+![Alexa Icon Hider](docs/screenshots/hero.png)
+
 Der Statusbildschirm der App nach der Einrichtung:
 
 ![Statusbildschirm](docs/screenshots/status-screen.png)
