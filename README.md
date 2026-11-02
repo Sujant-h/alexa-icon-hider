@@ -6,20 +6,6 @@ Blendet auf dem Amazon Alexa Tablet 12 Pro das Alexa-Symbol (`AlexaIngressButton
 
 ![Alexa Icon Hider](docs/screenshots/hero.png)
 
-Der Statusbildschirm der App nach der Einrichtung:
-
-![Statusbildschirm](docs/screenshots/status-screen.png)
-
-Der Verlauf mit den Läufen seit dem Neustart:
-
-![Verlauf](docs/screenshots/history.png)
-
-Das Alexa-Widget in der Taskleiste, mit und ohne aktivierten Schalter:
-
-| Mit Widget | Ohne Widget |
-|:---:|:---:|
-| ![Mit Widget](docs/screenshots/screenshot_with_widget.png) | ![Ohne Widget](docs/screenshots/screenshot_without_widget.png) |
-
 ## Kompatibilität
 
 - **Getestet:** Alexa Tablet 12 Pro (ATSPWI), Alexa Tablet UI 16.1.10 (Android 16, API 36), Build SL16SHIP2003.1344N, Fire Launcher (Home UI) 1.0.21178.0, Headless System User Mode mit Nutzer 10, Alexa-App deaktiviert.
